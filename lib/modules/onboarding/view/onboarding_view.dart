@@ -38,6 +38,7 @@ class OnboardingView extends StatelessWidget {
 
             const Spacer(),
 
+
             CustomButton(
               label: 'Get Started',
               onPressed: () => Get.toNamed(RoutesName.login),
