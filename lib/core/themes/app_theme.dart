@@ -1,7 +1,7 @@
 // lib/core/themes/app_theme.dart
 import 'package:flutter/material.dart';
 import 'package:bhakharamart/core/themes/app_text_theme.dart';
-import '../../res/colors/app_colors.dart';
+import 'package:bhakharamart/core/themes/app_colors.dart';
 
 class AppTheme {
   static ThemeData lightTheme = ThemeData(

@@ -2,10 +2,12 @@ import 'package:bhakharamart/res/getx_localization/languages.dart';
 import 'package:bhakharamart/res/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'core/themes/app_theme.dart';
 import 'res/routes/routes_name.dart';
 
-void main() {
+Future<void> main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 

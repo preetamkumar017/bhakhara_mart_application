@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../res/colors/app_colors.dart';
+import 'package:bhakharamart/core/themes/app_colors.dart';
 import '../../../res/components/custom_button.dart';
 import '../controller/home_controller.dart';
 
@@ -150,182 +150,25 @@ class HomeView extends StatelessWidget {
               ),
             ),
             // Category Tabs
-            Container(
-              height: 105,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: controller.categories.length,
-                itemBuilder: (context, index) {
-                  final category = controller.categories[index];
-                  return Obx(() {
-                    final isSelected =
-                        controller.selectedCategoryIndex.value == index;
-                    return GestureDetector(
-                      onTap: () => controller.selectCategory(index),
-                      child: Container(
-                        width: 70,
-                        margin: const EdgeInsets.only(right: 16),
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppColors.primary.withOpacity(0.1)
-                                    : AppColors.card,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                category['icon'] as IconData,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              category['name'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.textSecondary,
-                              ),
-                            ),
-                            if (isSelected)
-                              Container(
-                                margin: const EdgeInsets.only(top: 4),
-                                height: 2,
-                                width: 30,
-                                color: AppColors.primary,
-                              ),
-                          ],
-                        ),
-                      ),
-                    );
-                  });
-                },
-              ),
-            ),
-            // Promotional Banner
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.promoYellow,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Stack(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'COLD OUTSIDE, HOT SOUPY DEALS INSIDE!',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Text(
-                                  'SHOP NOW',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.soup_kitchen,
-                            size: 50,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'UPTO 50% OFF',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            TabBar(
+              controller: controller.tabController,
+              isScrollable: true,
+              tabs: controller.categories.map((category) {
+                return Tab(
+                  icon: Icon(category['icon'] as IconData),
+                  text: category['name'] as String,
+                );
+              }).toList(),
             ),
             // Product Sections
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Noodles & Soups Section
-                    _buildProductSection(
-                      context,
-                      'Noodles & Soups',
-                      controller.noodlesProducts,
-                      showOfferPrice: false,
-                    ),
-                    const SizedBox(height: 24),
-                    // Handpicked for You Section
-                    _buildHandpickedSection(
-                      context,
-                      'Handpicked for You',
-                      controller.handpickedProducts,
-                    ),
-                    const SizedBox(height: 100), // Space for bottom cart bar
-                  ],
-                ),
+              child: TabBarView(
+                controller: controller.tabController,
+                children: controller.categories.map((category) {
+                  final categoryName = category['name'] as String;
+                  final products = controller.getProductsForCategory(categoryName);
+                  return CategoryTabBody(products: products);
+                }).toList(),
               ),
             ),
           ],
@@ -386,356 +229,163 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildProductSection(
-    BuildContext context,
-    String title,
-    List<Map<String, dynamic>> products, {
-    bool showOfferPrice = false,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'View All',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: AppColors.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return InkWell(
-                onTap: () => controller.openProduct(product),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.divider, width: 1),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Discount Badge
-                        if (product['discount'] != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.discountGreen,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              product['discount'] as String,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        if (product['discount'] != null)
-                          const SizedBox(height: 8),
-                        // Product Image Placeholder
-                        Container(
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.fastfood,
-                            size: 40,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Product Name
-                        Text(
-                          product['name'] as String,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        // Price Row
-                        Row(
-                          children: [
-                            Text(
-                              '₹${product['price']}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            if (product['originalPrice'] != null) ...[
-                              const SizedBox(width: 6),
-                              Text(
-                                '₹${product['originalPrice']}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.textSecondary,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        // Weight
-                        Text(
-                          product['weight'] as String,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Add Button
-                        CustomButton(
-                          label: 'Add',
-                          fullWidth: true,
-                          onPressed: () => controller.addToCart(product),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
+class CategoryTabBody extends StatelessWidget {
+  final List<Map<String, dynamic>> products;
+
+  const CategoryTabBody({super.key, required this.products});
+
+  @override
+  Widget build(BuildContext context) {
+    if (products.isEmpty) {
+      return const Center(
+        child: Text('No products in this category yet.'),
+      );
+    }
+    return GridView.builder(
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        return ProductCard(product: product);
+      },
     );
   }
+}
 
-  Widget _buildHandpickedSection(
-    BuildContext context,
-    String title,
-    List<Map<String, dynamic>> products,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+class ProductCard extends StatelessWidget {
+  final Map<String, dynamic> product;
+  const ProductCard({super.key, required this.product});
+
+  @override
+  Widget build(BuildContext context) {
+    final HomeController controller = Get.find();
+    return GestureDetector(
+      onTap: () => controller.openProduct(product),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.card.withOpacity(0.5)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image and Discount
+            Stack(
+              alignment: Alignment.topLeft,
+              children: [
+                Container(
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  // You can add an Image.network(product['image']) here
+                  // when you have image URLs.
+                  child: const Center(
+                      child: Icon(Icons.image_outlined, color: Colors.grey)),
+                ),
+                if (product['discount'] != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      product['discount'] as String,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            // Product Details
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    product['name'] as String,
                     style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product['weight'] as String,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.favorite, color: Colors.pink, size: 20),
-                ],
-              ),
-              TextButton(
-                onPressed: () {},
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'View All',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: 12,
-                      color: AppColors.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 280,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              final hasOffer = product['hasOffer'] == true;
-              return InkWell(
-                onTap: () => controller.openProduct(product),
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.divider, width: 1),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Product Image Placeholder
-                        Container(
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: AppColors.card,
-                            borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 8),
+                  // Price and Add Button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '₹${product['price']}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.fastfood,
-                            size: 40,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Product Name
-                        Text(
-                          product['name'] as String,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 4),
-                        // Weight
-                        Text(
-                          product['weight'] as String,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Price Row
-                        Row(
-                          children: [
+                          if (product['originalPrice'] != null)
                             Text(
-                              '₹${product['price']}',
+                              '₹${product['originalPrice']}',
                               style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                                decoration: TextDecoration.lineThrough,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Offer Price Button (if available)
-                        if (hasOffer)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: AppColors.offerPurple,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.lock,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(width: 4),
-                                const Flexible(
-                                  child: Text(
-                                    'OFFER PRICE',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '₹${product['offerPrice']}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: () => controller.addToCart(product),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        if (hasOffer) const SizedBox(height: 8),
-                        // Add Button
-                        CustomButton(
-                          label: 'Add',
-                          fullWidth: true,
-                          onPressed: () => controller.addToCart(product),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+                        child: const Text('ADD'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

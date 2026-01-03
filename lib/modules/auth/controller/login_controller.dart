@@ -1,28 +1,65 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+
+import '../../../data/network/network_api_services.dart';
+import '../../../data/network/api_endpoints.dart';
+import '../../../core/utils/snackbar.dart';
 import '../../../res/routes/routes_name.dart';
 
 class LoginController extends GetxController {
-  final emailController = TextEditingController();
+  final _apiService = NetworkApiServices();
+  final _storage = GetStorage();
+
+  final mobileController = TextEditingController();
   final passwordController = TextEditingController();
+
   final isLoading = false.obs;
 
   void login() async {
-    if (emailController.text.isEmpty || passwordController.text.isEmpty) {
-      Get.snackbar('Oops', 'Please enter email & password');
+    if (mobileController.text.trim().isEmpty ||
+        passwordController.text.trim().isEmpty) {
+      SnackBarUtils.showError('Please enter mobile and password');
       return;
     }
-    isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 1));
-    isLoading.value = false;
-    Get.offAllNamed(RoutesName.home);
+
+    final data = {
+      "mobile": mobileController.text.trim(),
+      "password": passwordController.text.trim(),
+    };
+
+    try {
+      isLoading.value = true;
+
+      final response =
+      await _apiService.postApi(ApiEndpoints.login, data);
+
+      isLoading.value = false;
+
+      if (response['status'] == true) {
+        // ✅ SAVE TOKEN
+        _storage.write('token', response['token']);
+        _storage.write('isLoggedIn', true);
+
+        SnackBarUtils.showSuccess('Login successful');
+
+        // ✅ NAVIGATE TO HOME
+        Get.offAllNamed(RoutesName.home);
+      } else {
+        SnackBarUtils.showError(
+          response['message'] ?? 'Invalid credentials',
+        );
+      }
+    } catch (e) {
+      isLoading.value = false;
+      SnackBarUtils.showError(e.toString());
+    }
   }
 
   @override
   void onClose() {
-    emailController.dispose();
+    mobileController.dispose();
     passwordController.dispose();
     super.onClose();
   }
 }
-

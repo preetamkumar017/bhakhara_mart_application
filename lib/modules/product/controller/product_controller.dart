@@ -1,3 +1,4 @@
+import 'package:bhakharamart/core/utils/snackbar.dart';
 import 'package:get/get.dart';
 
 class ProductController extends GetxController {
@@ -51,7 +52,7 @@ class ProductController extends GetxController {
       'selectedWeight': weightOptions[selectedWeightIndex.value],
     };
     Get.back(result: cartProduct);
-    Get.snackbar('Added', '${product['name']} added to cart');
+    SnackBarUtils.showSuccess('${product['name']} has been added to your cart.');
   }
 }
 

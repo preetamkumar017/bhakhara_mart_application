@@ -1,7 +1,40 @@
 class ApiEndpoints {
-  static const baseUrl = "https://example.com/api/";
+  static const String baseUrl = "https://bhakharamart.com/api/";
 
-  static const login = "${baseUrl}auth/login";
-  static const products = "${baseUrl}products";
-  static const cart = "${baseUrl}cart";
+  // Auth
+  static const String login = "${baseUrl}customer/login";
+
+  // Customer Profile
+  static const String customerProfile = "${baseUrl}customer/profile";
+
+  // Products & Categories
+  static const String products = "${baseUrl}products";
+  static const String categories = "${baseUrl}categories";
+  static String categoryProducts(int categoryId) => "${baseUrl}categories/$categoryId/products";
+
+  // Inventory
+  static const String inventory = "${baseUrl}inventory";
+  static String inventoryProduct(int productId) => "${baseUrl}inventory/product/$productId";
+
+  // Cart
+  static const String cart = "${baseUrl}cart";
+  static const String cartAdd = "${baseUrl}cart/add";
+  static const String cartUpdate = "${baseUrl}cart/update";
+  static const String cartRemove = "${baseUrl}cart/remove";
+
+  // Orders
+  static const String orderPlace = "${baseUrl}order/place";
+  static const String orders = "${baseUrl}orders";
+  static String orderDetail(int orderId) => "${baseUrl}orders/$orderId";
+
+  // Order Tracking & Invoices
+  static String orderStatus(int orderId) => "${baseUrl}order/$orderId/status";
+  static String orderInvoice(int orderId) => "${baseUrl}order/$orderId/invoice";
+  static String orderInvoicePdf(int orderId) => "${baseUrl}order/$orderId/invoice-pdf";
+
+  // Address Management
+  static const String addresses = "${baseUrl}addresses";
+  static const String addressAdd = "${baseUrl}addresses/add";
+  static const String addressSetDefault = "${baseUrl}addresses/set-default";
+  static const String addressDelete = "${baseUrl}addresses/delete";
 }

@@ -13,34 +13,48 @@ class LoginView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Welcome back', style: Theme.of(context).textTheme.displayLarge),
-            const SizedBox(height: 24),
-            CustomTextField(
-              controller: controller.emailController,
-              hintText: 'Email',
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 12),
-            CustomTextField(
-              controller: controller.passwordController,
-              hintText: 'Password',
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            Obx(() => CustomButton(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Welcome back',
+                style: Theme.of(context).textTheme.displayLarge,
+              ),
+              const SizedBox(height: 24),
+
+              /// MOBILE NUMBER
+              CustomTextField(
+                controller: controller.mobileController,
+                hintText: 'Mobile Number',
+                keyboardType: TextInputType.phone,
+              ),
+
+              const SizedBox(height: 12),
+
+              /// PASSWORD
+              CustomTextField(
+                controller: controller.passwordController,
+                hintText: 'Password',
+                obscureText: true,
+              ),
+
+              const SizedBox(height: 24),
+
+              /// LOGIN BUTTON
+              Obx(
+                    () => CustomButton(
                   label: 'Continue',
                   loading: controller.isLoading.value,
                   onPressed: controller.login,
-                )),
-          ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-

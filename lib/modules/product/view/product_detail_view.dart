@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../res/colors/app_colors.dart';
+import 'package:bhakharamart/core/themes/app_colors.dart';
 import '../controller/product_controller.dart';
 
 class ProductDetailView extends StatelessWidget {

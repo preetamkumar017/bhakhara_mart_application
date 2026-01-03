@@ -1,3 +1,4 @@
+import 'package:bhakharamart/core/utils/snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,8 +23,11 @@ class CheckoutController extends GetxController {
   }
 
   void placeOrder() {
-    Get.snackbar('Order', 'COD order placed at ${selectedAddress.value}');
+    SnackBarUtils.showSuccess('Your COD order has been placed for ${selectedAddress.value}');
+
   }
+
+
 
   @override
   void onClose() {
@@ -31,4 +35,3 @@ class CheckoutController extends GetxController {
     super.onClose();
   }
 }
-

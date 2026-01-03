@@ -6,98 +6,187 @@ import 'package:http/http.dart' as http;
 
 import '../app_exception.dart';
 
-class NetworkApiServices extends BaseApiServices{
+class NetworkApiServices extends BaseApiServices {
 
-
+  // =========================
+  // GET
+  // =========================
   @override
   Future<dynamic> getApi(String url) async {
     dynamic responseJson;
-    try{
-      final response = await http.get(Uri.parse(url)).timeout(
-          const Duration(seconds: 10));
+    try {
+      final response = await http
+          .get(
+        Uri.parse(url),
+        headers: _defaultHeaders(),
+      )
+          .timeout(const Duration(seconds: 10));
 
       responseJson = returnResponse(response);
-
-    }on SocketException{
-      throw InternetErrorException("");
+    } on SocketException {
+      throw InternetErrorException("No Internet Connection");
     }
     return responseJson;
   }
 
+  // =========================
+  // POST  ✅ (MOST IMPORTANT)
+  // =========================
   @override
-  Future<dynamic> patchApi(String url, Map<String, dynamic> body) {
-    // TODO: implement patchApi
-    throw UnimplementedError();
+  Future<dynamic> postApi(String url, Map<String, dynamic> body) async {
+    dynamic responseJson;
+    try {
+      final response = await http
+          .post(
+        Uri.parse(url),
+        headers: _defaultHeaders(),
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 10));
+
+      print('Response body: ${response.body}');
+
+      responseJson = returnResponse(response);
+    } on SocketException {
+      throw InternetErrorException("No Internet Connection");
+    }
+    return responseJson;
+  }
+
+  // =========================
+  // PUT
+  // =========================
+  @override
+  Future<dynamic> putApi(String url, Map<String, dynamic> body) async {
+    dynamic responseJson;
+    try {
+      final response = await http
+          .put(
+        Uri.parse(url),
+        headers: _defaultHeaders(),
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 10));
+
+      responseJson = returnResponse(response);
+    } on SocketException {
+      throw InternetErrorException("No Internet Connection");
+    }
+    return responseJson;
+  }
+
+  // =========================
+  // PATCH
+  // =========================
+  @override
+  Future<dynamic> patchApi(String url, Map<String, dynamic> body) async {
+    dynamic responseJson;
+    try {
+      final response = await http
+          .patch(
+        Uri.parse(url),
+        headers: _defaultHeaders(),
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 10));
+
+      responseJson = returnResponse(response);
+    } on SocketException {
+      throw InternetErrorException("No Internet Connection");
+    }
+    return responseJson;
+  }
+
+  // =========================
+  // DELETE
+  // =========================
+  @override
+  Future<dynamic> deleteApi(String url, Map<String, dynamic> body) async {
+    dynamic responseJson;
+    try {
+      final response = await http
+          .delete(
+        Uri.parse(url),
+        headers: _defaultHeaders(),
+        body: jsonEncode(body),
+      )
+          .timeout(const Duration(seconds: 10));
+
+      responseJson = returnResponse(response);
+    } on SocketException {
+      throw InternetErrorException("No Internet Connection");
+    }
+    return responseJson;
+  }
+
+  // =========================
+  // DOWNLOAD (NOT USED YET)
+  // =========================
+  @override
+  Future<dynamic> downloadApi(String url) async {
+    throw UnimplementedError("downloadApi not implemented yet");
   }
 
   @override
-  Future<dynamic> postApi(String url, Map<String, dynamic> body) {
-    // TODO: implement postApi
-    throw UnimplementedError();
+  Future<dynamic> downloadFile(String url, String path) async {
+    throw UnimplementedError("downloadFile not implemented yet");
   }
 
   @override
-  Future<dynamic> putApi(String url, Map<String, dynamic> body) {
-    // TODO: implement putApi
-    throw UnimplementedError();
-  }
-  @override
-  Future<dynamic> deleteApi(String url, Map<String, dynamic> body) {
-    // TODO: implement deleteApi
-    throw UnimplementedError();
+  Future<dynamic> downloadImage(String url, String path) async {
+    throw UnimplementedError("downloadImage not implemented yet");
   }
 
   @override
-  Future<dynamic> downloadApi(String url) {
-    // TODO: implement downloadApi
-    throw UnimplementedError();
+  Future<dynamic> downloadPdf(String url, String path) async {
+    throw UnimplementedError("downloadPdf not implemented yet");
   }
 
+  // =========================
+  // UPLOAD (MULTIPART – FUTURE)
+  // =========================
   @override
-  Future<dynamic> downloadFile(String url, String path) {
-    // TODO: implement downloadFile
-    throw UnimplementedError();
+  Future<dynamic> uploadApi(
+      String url, Map<String, dynamic> body, List<File> files) async {
+    throw UnimplementedError("uploadApi not implemented yet");
   }
 
-  @override
-  Future<dynamic> downloadImage(String url, String path) {
-    // TODO: implement downloadImage
-    throw UnimplementedError();
+  // =========================
+  // HEADERS (CENTRAL PLACE)
+  // =========================
+  Map<String, String> _defaultHeaders() {
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
   }
-
-  @override
-  Future<dynamic> downloadPdf(String url, String path) {
-    // TODO: implement downloadPdf
-    throw UnimplementedError();
-  }
-
-
-  @override
-  Future<dynamic> uploadApi(String url, Map<String, dynamic> body, List<File> files) {
-    // TODO: implement uploadApi
-    throw UnimplementedError();
-  }
-
 }
 
-
-dynamic returnResponse(http.Response response) async {
-  switch(response.statusCode){
+// =========================
+// RESPONSE HANDLER
+// =========================
+dynamic returnResponse(http.Response response) {
+  switch (response.statusCode) {
     case 200:
-      dynamic responseJson = jsonDecode(response.body.toString());
-      return responseJson;
+    case 201:
+      return jsonDecode(response.body);
+
     case 400:
-      throw BadRequestException(response.body.toString());
+      throw BadRequestException(response.body);
+
     case 401:
     case 403:
-      throw UnauthorizedException(response.body.toString());
-    case 404:
-      throw NotFoundException(response.body.toString());
-    case 500:
-      throw ServerException(response.body.toString());
-      
-    default:
-      throw FetchDataException("Error occurred while communicating with server with status code ${response.statusCode}");
-  }
+      throw UnauthorizedException(response.body);
 
+    case 404:
+      throw NotFoundException(response.body);
+
+    case 500:
+      throw ServerException(response.body);
+
+    default:
+      throw FetchDataException(
+        "Error occurred with status code ${response.statusCode}",
+      );
+  }
 }

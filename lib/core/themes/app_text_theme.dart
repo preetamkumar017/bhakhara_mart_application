@@ -1,6 +1,6 @@
 // lib/core/themes/app_text_theme.dart
+import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:flutter/material.dart';
-import '../../res/colors/app_colors.dart';
 
 class AppTextTheme {
   static const String defaultFont = 'Roboto';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class SnackbarUtils {
+class SnackBarUtils {
   static void showSuccess(String message) {
     _show(message, backgroundColor: Colors.green.shade600);
   }
