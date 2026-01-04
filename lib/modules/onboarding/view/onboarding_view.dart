@@ -2,9 +2,12 @@ import 'package:bhakharamart/res/routes/routes_name.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
+import 'package:get_storage/get_storage.dart';
 
 class OnboardingView extends StatelessWidget {
-  const OnboardingView({super.key});
+   OnboardingView({super.key});
+
+  final _box = GetStorage();
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +44,11 @@ class OnboardingView extends StatelessWidget {
 
             CustomButton(
               label: 'Get Started',
-              onPressed: () => Get.toNamed(RoutesName.login),
+              onPressed: ()  {
+              
+              _box.write('isOnboarded', true);
+              Get.offAllNamed(RoutesName.login);
+            },
             ),
           ],
         ),

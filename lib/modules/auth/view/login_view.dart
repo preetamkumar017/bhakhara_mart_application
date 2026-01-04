@@ -27,7 +27,7 @@ class LoginView extends StatelessWidget {
 
               /// MOBILE NUMBER
               CustomTextField(
-                controller: controller.mobileController,
+                controller: controller.mobileController..text = '9999999999',
                 hintText: 'Mobile Number',
                 keyboardType: TextInputType.phone,
               ),
@@ -36,7 +36,7 @@ class LoginView extends StatelessWidget {
 
               /// PASSWORD
               CustomTextField(
-                controller: controller.passwordController,
+                controller: controller.passwordController..text = 'password',
                 hintText: 'Password',
                 obscureText: true,
               ),

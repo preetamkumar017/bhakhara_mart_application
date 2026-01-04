@@ -1,15 +1,57 @@
 import 'package:get/get.dart';
+import '../repo/cart_repo.dart';
+import '../../../data/models/cart_model.dart';
 
 class CartController extends GetxController {
-  final items = [
-    {'name': 'Fresh Apples', 'qty': 1, 'price': 120},
-    {'name': 'Organic Milk', 'qty': 2, 'price': 65},
-  ].obs;
+  final CartRepo _repo = CartRepo();
 
-  double get total => items.fold(0, (sum, item) => sum + (item['qty'] as int) * (item['price'] as num));
+  final items = <CartItemModel>[].obs;
+  final isLoading = false.obs;
 
-  void checkout() {
-    Get.toNamed('/checkout');
+  @override
+  void onInit() {
+    super.onInit();
+    loadCart();
   }
-}
 
+  Future<void> loadCart() async {
+    isLoading.value = true;
+    items.assignAll(await _repo.fetchCart());
+    isLoading.value = false;
+  }
+
+  Future<void> addItem(int productId) async {
+    await _repo.addToCart(productId, 1);
+    await loadCart();
+  }
+
+  Future<void> increaseQty(CartItemModel item) async {
+    await _repo.updateCart(
+      int.parse(item.productId),
+      item.quantity.toInt() + 1,
+    );
+    await loadCart();
+  }
+
+  Future<void> decreaseQty(CartItemModel item) async {
+    if (item.quantity <= 1) {
+      await removeItem(item);
+    } else {
+      await _repo.updateCart(
+        int.parse(item.productId),
+        item.quantity.toInt() - 1,
+      );
+      await loadCart();
+    }
+  }
+
+  Future<void> removeItem(CartItemModel item) async {
+    await _repo.removeFromCart(int.parse(item.productId));
+    await loadCart();
+  }
+
+  int get totalItems => items.length;
+
+  double get totalAmount =>
+      items.fold(0, (sum, e) => sum + e.subtotal);
+}

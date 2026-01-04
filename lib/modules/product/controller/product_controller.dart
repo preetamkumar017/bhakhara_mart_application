@@ -1,58 +1,33 @@
-import 'package:bhakharamart/core/utils/snackbar.dart';
 import 'package:get/get.dart';
+import '../repo/product_repo.dart';
+import '../../../data/models/product_model.dart';
 
 class ProductController extends GetxController {
-  late Map<String, dynamic> product;
+  final ProductRepo _repo = ProductRepo();
+
+  final products = <ProductModel>[].obs;
+  final isLoading = false.obs;
+  final error = ''.obs;
+
   final quantity = 1.obs;
-  final selectedWeightIndex = 0.obs;
-  final expandedSections = <String, bool>{
-    'highlights': false,
-    'specifications': false,
-    'returnPolicy': false,
-  }.obs;
 
-  final weightOptions = ['32g', '140g', '280g', '420g', '560g'];
+  Future<void> loadProducts(String categoryId) async {
+    try {
+      isLoading.value = true;
+      error.value = '';
 
-  @override
-  void onInit() {
-    super.onInit();
-    product = Get.arguments ?? {};
-    // Set default weight if available
-    if (product['weight'] != null) {
-      final weight = product['weight'] as String;
-      final index = weightOptions.indexWhere((w) => weight.contains(w.replaceAll('g', '')));
-      if (index >= 0) {
-        selectedWeightIndex.value = index;
-      }
+      final data = await _repo.getProducts(categoryId);
+      products.assignAll(data);
+    } catch (e) {
+      error.value = 'Unable to load products';
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  void incrementQuantity() {
-    quantity.value++;
-  }
+  void increaseQty() => quantity.value++;
 
-  void decrementQuantity() {
-    if (quantity.value > 1) {
-      quantity.value--;
-    }
-  }
-
-  void selectWeight(int index) {
-    selectedWeightIndex.value = index;
-  }
-
-  void toggleSection(String section) {
-    expandedSections[section] = !(expandedSections[section] ?? false);
-  }
-
-  void addToCart() {
-    final cartProduct = {
-      ...product,
-      'quantity': quantity.value,
-      'selectedWeight': weightOptions[selectedWeightIndex.value],
-    };
-    Get.back(result: cartProduct);
-    SnackBarUtils.showSuccess('${product['name']} has been added to your cart.');
+  void decreaseQty() {
+    if (quantity.value > 1) quantity.value--;
   }
 }
-

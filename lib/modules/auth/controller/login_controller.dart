@@ -31,15 +31,27 @@ class LoginController extends GetxController {
     try {
       isLoading.value = true;
 
-      final response =
-      await _apiService.postApi(ApiEndpoints.login, data);
+      final response = await _apiService.postApi(ApiEndpoints.login, data);
 
       isLoading.value = false;
 
       if (response['status'] == true) {
-        // ✅ SAVE TOKEN
-        _storage.write('token', response['token']);
-        _storage.write('isLoggedIn', true);
+        // ✅ SAVE TOKEN (await to ensure it's persisted before next requests)
+        final tokenValue = response['access_token'] ?? response['token'];
+        final refresh = response['refresh_token'];
+
+        if (tokenValue != null) {
+          await _storage.write('token', tokenValue);
+          await _storage.write('access_token', tokenValue);
+        }
+        if (refresh != null) {
+          await _storage.write('refresh_token', refresh);
+        }
+        await _storage.write('isLoggedIn', true);
+
+        // Verify token was stored (debug)
+        final stored = _storage.read('token') ?? _storage.read('access_token');
+        print('Login: stored token = $stored');
 
         SnackBarUtils.showSuccess('Login successful');
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bhakharamart/data/network/base_api_services.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../app_exception.dart';
@@ -155,9 +156,14 @@ class NetworkApiServices extends BaseApiServices {
   // HEADERS (CENTRAL PLACE)
   // =========================
   Map<String, String> _defaultHeaders() {
+    // Get token from storage
+    final box = GetStorage();
+    final token = box.read('token') ?? box.read('access_token');
+    print('Token: $token');
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
     };
   }
 }

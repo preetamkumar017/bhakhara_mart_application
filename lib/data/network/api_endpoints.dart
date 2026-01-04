@@ -12,6 +12,10 @@ class ApiEndpoints {
   static const String categories = "${baseUrl}categories";
   static String categoryProducts(int categoryId) => "${baseUrl}categories/$categoryId/products";
 
+  static String productsByCategory(String categoryId) {
+    return '$baseUrl/categories/$categoryId/products';
+  }
+
   // Inventory
   static const String inventory = "${baseUrl}inventory";
   static String inventoryProduct(int productId) => "${baseUrl}inventory/product/$productId";

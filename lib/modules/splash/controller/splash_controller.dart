@@ -10,22 +10,20 @@ class SplashController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    _timer = Timer(const Duration(seconds: 2), _navigate);
+  }
 
-    _timer = Timer(const Duration(seconds: 2), () {
-      final bool isOnboarded = _box.read('isOnboarded') ?? false;
-      final bool isLoggedIn = _box.read('isLoggedIn') ?? false;
+  void _navigate() {
+    final bool isOnboarded = _box.read('isOnboarded') ?? false;
+    final bool isLoggedIn = _box.read('isLoggedIn') ?? false;
 
-      if (!isOnboarded) {
-        // First time user
-        Get.offAllNamed(RoutesName.onboarding);
-      } else if (isLoggedIn) {
-        // Returning logged-in user
-        Get.offAllNamed(RoutesName.home);
-      } else {
-        // Onboarding done but not logged in
-        Get.offAllNamed(RoutesName.login);
-      }
-    });
+    if (!isOnboarded) {
+      Get.offAllNamed(RoutesName.onboarding);
+    } else if (isLoggedIn) {
+      Get.offAllNamed(RoutesName.home);
+    } else {
+      Get.offAllNamed(RoutesName.login);
+    }
   }
 
   @override

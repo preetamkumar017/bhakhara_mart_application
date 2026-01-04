@@ -1,53 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../res/components/custom_button.dart';
 import '../controller/cart_controller.dart';
 
 class CartView extends StatelessWidget {
-  CartView({super.key});
-
-  final CartController controller = Get.put(CartController());
+  final CartController controller = Get.find<CartController>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Cart')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Obx(() {
-          return Column(
-            children: [
-              Expanded(
-                child: ListView.separated(
-                  itemCount: controller.items.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (context, index) {
-                    final item = controller.items[index];
-                    return ListTile(
-                      tileColor: Theme.of(context).cardColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      title: Text('${item['name']}'),
-                      subtitle: Text('Qty: ${item['qty']}'),
-                      trailing: Text('₹${(item['qty'] as int) * (item['price'] as num)}'),
-                    );
-                  },
-                ),
+      appBar: AppBar(title: const Text('Your Cart')),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.items.isEmpty) {
+          return const Center(child: Text('Cart is empty'));
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                itemCount: controller.items.length,
+                itemBuilder: (_, i) {
+                  final item = controller.items[i];
+                  return ListTile(
+                    title: Text(item.name),
+                    subtitle: Text('${item.unit} • ₹${item.price}'),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove),
+                          onPressed: () => controller.decreaseQty(item),
+                        ),
+                        Text(item.quantity.toInt().toString()),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () => controller.increaseQty(item),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () => controller.removeItem(item),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
                 children: [
-                  Text('Total', style: Theme.of(context).textTheme.titleLarge),
-                  Text('₹${controller.total}', style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Total: ₹${controller.totalAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: () {},
+                    child: const Text('Checkout'),
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              CustomButton(label: 'Checkout (COD)', onPressed: controller.checkout),
-            ],
-          );
-        }),
-      ),
+            )
+          ],
+        );
+      }),
     );
   }
 }
-

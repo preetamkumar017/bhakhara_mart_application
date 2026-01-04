@@ -1,3 +1,4 @@
+import 'package:bhakharamart/core/bindings/app_binding.dart';
 import 'package:bhakharamart/res/getx_localization/languages.dart';
 import 'package:bhakharamart/res/routes/routes.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'core/themes/app_theme.dart';
 import 'res/routes/routes_name.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
   runApp(const MyApp());
 }
@@ -19,6 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      initialBinding: AppBinding(), // ✅ IMPORTANT LINE
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       initialRoute: RoutesName.splash,
