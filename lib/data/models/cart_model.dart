@@ -20,15 +20,24 @@ class CartItemModel {
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    String parseString(dynamic val) => val?.toString() ?? '';
+    double parseDouble(dynamic val) {
+      if (val == null) return 0.0;
+      if (val is double) return val;
+      if (val is int) return val.toDouble();
+      if (val is String && val.isNotEmpty) return double.tryParse(val) ?? 0.0;
+      return 0.0;
+    }
+
     return CartItemModel(
-      id: json['id'].toString(),
-      productId: json['product_id'].toString(),
-      name: json['product_name'],
-      unit: json['unit'],
-      price: double.parse(json['sale_price']),
-      gst: double.parse(json['gst_percent']),
-      quantity: double.parse(json['quantity']),
-      subtotal: double.parse(json['subtotal']),
+      id: parseString(json['id']),
+      productId: parseString(json['product_id']),
+      name: json['product_name'] ?? '',
+      unit: json['unit'] ?? '',
+      price: parseDouble(json['sale_price']),
+      gst: parseDouble(json['gst_percent']),
+      quantity: parseDouble(json['quantity']),
+      subtotal: parseDouble(json['subtotal']),
     );
   }
 }

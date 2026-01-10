@@ -16,4 +16,14 @@ class ProductRepo {
     final List list = response['data'];
     return list.map((e) => ProductModel.fromJson(e)).toList();
   }
+  Future<List<ProductModel>> getAllProducts() async {
+    final response = await _api.getApi(ApiEndpoints.products);
+
+    if (response['status'] != true) {
+      throw Exception('Failed to load products');
+    }
+
+    final List list = response['data'];
+    return list.map((e) => ProductModel.fromJson(e)).toList();
+  }
 }

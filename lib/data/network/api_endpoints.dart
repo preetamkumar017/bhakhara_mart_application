@@ -1,5 +1,6 @@
 class ApiEndpoints {
-  static const String baseUrl = "https://bhakharamart.com/api/";
+  static const String domain = "https://bhakharamart.com";
+  static const String baseUrl = "$domain/api/";
 
   // Auth
   static const String login = "${baseUrl}customer/login";

@@ -1,18 +1,17 @@
-import 'package:bhakharamart/core/themes/app_colors.dart';
-import 'package:bhakharamart/data/models/product_model.dart';
-import 'package:bhakharamart/modules/home/controller/home_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:bhakharamart/core/themes/app_colors.dart';
+import 'package:bhakharamart/data/models/product_model.dart';
+import 'package:bhakharamart/data/network/api_endpoints.dart';
+import 'package:bhakharamart/modules/home/controller/home_controller.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends GetView<HomeController> {
   final ProductModel product;
 
   const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
-    final HomeController controller = Get.find();
-
     return GestureDetector(
       onTap: () => controller.openProduct(product),
       child: Container(
@@ -24,8 +23,17 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Expanded(
-              child: Center(child: Icon(Icons.image_outlined)),
+            Expanded(
+              child: Center(
+                child: product.image.isNotEmpty
+                    ? Image.network(
+                        '${ApiEndpoints.domain}/uploads/products/${product.image}',
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) =>
+                            const Icon(Icons.broken_image_outlined),
+                      )
+                    : const Icon(Icons.image_outlined),
+              ),
             ),
             Text(
               product.productName,

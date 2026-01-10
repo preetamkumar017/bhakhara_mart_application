@@ -45,7 +45,6 @@ class NetworkApiServices extends BaseApiServices {
       )
           .timeout(const Duration(seconds: 10));
 
-      print('Response body: ${response.body}');
 
       responseJson = returnResponse(response);
     } on SocketException {
@@ -159,7 +158,6 @@ class NetworkApiServices extends BaseApiServices {
     // Get token from storage
     final box = GetStorage();
     final token = box.read('token') ?? box.read('access_token');
-    print('Token: $token');
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

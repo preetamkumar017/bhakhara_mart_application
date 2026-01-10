@@ -37,6 +37,18 @@ class ProfileView extends StatelessWidget {
                 trailing: const Icon(Icons.arrow_forward_ios, size: 14),
                 onTap: () {},
               ),
+              const Spacer(),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.logout, color: Colors.red),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  controller.logout();
+                },
+              ),
             ],
           );
         }),

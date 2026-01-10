@@ -1,22 +1,30 @@
-import 'package:bhakharamart/modules/cart/controller/cart_controller.dart';
 import 'package:get/get.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/product_model.dart';
 import '../repo/category_repo.dart';
 import '../../product/repo/product_repo.dart';
+import '../../cart/controller/cart_controller.dart';
+
+class CategoryTab {
+  final String id;
+  final String name;
+
+  CategoryTab(this.id, this.name);
+}
 
 class HomeController extends GetxController {
   final CategoryRepo _categoryRepo = CategoryRepo();
   final ProductRepo _productRepo = ProductRepo();
   final CartController cartController = Get.find<CartController>();
 
-  final categories = <CategoryModel>[].obs;
-  final products = <ProductModel>[].obs;
-
   final isCategoryLoading = false.obs;
   final isProductLoading = false.obs;
 
-  final selectedCategoryId = ''.obs;
+  /// Tabs (All + Categories)
+  final tabs = <CategoryTab>[].obs;
+
+  /// Cache products per category
+  final productsMap = <String, List<ProductModel>>{}.obs;
 
   @override
   void onInit() {
@@ -24,47 +32,66 @@ class HomeController extends GetxController {
     loadCategories();
   }
 
+  // ================= CATEGORIES =================
+
   Future<void> loadCategories() async {
     try {
       isCategoryLoading.value = true;
-      final data = await _categoryRepo.fetchCategories();
-      categories.assignAll(data);
 
-      if (categories.isNotEmpty) {
-        selectCategory(categories.first.id);
-      }
+      final data = await _categoryRepo.fetchCategories();
+
+      tabs.clear();
+      tabs.add(CategoryTab('all', 'All'));
+      tabs.addAll(data.map((e) => CategoryTab(e.id, e.name)));
+
+      // default load ALL products
+      loadProducts('all');
     } finally {
       isCategoryLoading.value = false;
     }
   }
 
-  Future<void> selectCategory(String categoryId) async {
-    selectedCategoryId.value = categoryId;
-    await loadProductsByCategory(categoryId);
+  void onTabChanged(int index) {
+    final tab = tabs[index];
+    if (!productsMap.containsKey(tab.id)) {
+      loadProducts(tab.id);
+    }
   }
 
-  Future<void> loadProductsByCategory(String categoryId) async {
+  // ================= PRODUCTS =================
+
+  Future<void> loadProducts(String categoryId) async {
     try {
       isProductLoading.value = true;
-      final data = await _productRepo.getProducts(categoryId);
-      products.assignAll(data);
+
+      final data = categoryId == 'all'
+          ? await _productRepo.getAllProducts()
+          : await _productRepo.getProducts(categoryId);
+
+      productsMap[categoryId] = data;
     } finally {
       isProductLoading.value = false;
     }
   }
 
-  int get cartItemCount => cartController.totalItems;
+  // ================= PRODUCT ACTIONS =================
+  /// 🔥 REQUIRED BY ProductCard
 
-  // Navigation helpers
   void openProduct(ProductModel product) {
-    Get.toNamed('/product-detail', arguments: product);
+    Get.toNamed(
+      '/product-detail',
+      arguments: product,
+    );
   }
 
   void addToCart(ProductModel product) {
     cartController.addItem(int.parse(product.id));
   }
 
+  // ================= COMMON =================
+
+  int get cartItemCount => cartController.totalItems;
+
   void openCart() => Get.toNamed('/cart');
   void openSearch() => Get.toNamed('/search');
-  void openProfile() => Get.toNamed('/profile');
 }
