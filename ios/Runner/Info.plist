@@ -45,5 +45,28 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Camera Permission for product scanning -->
+	<key>NSCameraUsageDescription</key>
+	<string>We need camera access to scan products and barcodes for a better shopping experience.</string>
+
+	<!-- Location Permission for delivery address -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We need your location to provide accurate delivery addresses and find nearby stores.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>We need your location to provide accurate delivery addresses and track your order delivery.</string>
+
+	<!-- Photo Library Permission for saving images -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We need photo library access to save product images and receipts.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We need permission to save product images and receipts to your photo library.</string>
+
+	<!-- App Transport Security for HTTP API access (if needed) -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
