@@ -25,6 +25,7 @@ class HomeView extends StatelessWidget {
           backgroundColor: Colors.white,
           body: SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(),
                 _buildTabBar(),
@@ -79,6 +80,7 @@ class HomeView extends StatelessWidget {
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(20),
         ),
+        dividerColor: Colors.transparent, // Remove the line
       ),
     );
   }
