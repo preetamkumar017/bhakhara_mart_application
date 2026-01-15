@@ -46,6 +46,9 @@ class LoginController extends GetxController {
         }
         if (refresh != null) {
           await _storage.write('refresh_token', refresh);
+        } else {
+          // If API doesn't return refresh_token, use existing one or null
+          print('Warning: No refresh_token in login response');
         }
         await _storage.write('isLoggedIn', true);
 
