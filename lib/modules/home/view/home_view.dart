@@ -23,11 +23,23 @@ class HomeView extends StatelessWidget {
         length: controller.tabs.length,
         child: Scaffold(
           backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text('Bhakharamart'),
+            actions: [
+              /// Profile Icon - Navigate to Profile Screen
+              IconButton(
+                icon: const Icon(Icons.person_outline),
+                onPressed: () => Get.toNamed('/profile'),
+              ),
+            ],
+          ),
           body: SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
+                // 🔍 SEARCH FUNCTIONALITY - COMMENTED OUT FOR NOW
+                // _buildHeader(),
+                const SizedBox(height: 8),
                 _buildTabBar(),
                 Expanded(child: _buildTabBarView()),
               ],
@@ -39,19 +51,20 @@ class HomeView extends StatelessWidget {
     });
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: TextField(
-        onTap: controller.openSearch,
-        decoration: const InputDecoration(
-          hintText: "Search for products",
-          prefixIcon: Icon(Icons.search),
-          border: OutlineInputBorder(),
-        ),
-      ),
-    );
-  }
+  // 🔍 SEARCH FUNCTIONALITY - COMMENTED OUT FOR NOW
+  // Widget _buildHeader() {
+  //   return Padding(
+  //     padding: const EdgeInsets.all(16),
+  //     child: TextField(
+  //       onTap: controller.openSearch,
+  //       decoration: const InputDecoration(
+  //         hintText: "Search for products",
+  //         prefixIcon: Icon(Icons.search),
+  //         border: OutlineInputBorder(),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   /// 🔥 Category as TAB (UI same chip style)
   Widget _buildTabBar() {
