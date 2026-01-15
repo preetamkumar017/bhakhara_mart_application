@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import '../../../data/models/category_model.dart';
 import '../../../data/models/product_model.dart';
 import '../repo/category_repo.dart';
 import '../../product/repo/product_repo.dart';
