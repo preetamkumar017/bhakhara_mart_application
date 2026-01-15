@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../repo/cart_repo.dart';
 import '../../../data/models/cart_model.dart';
+import '../../../modules/home/controller/home_controller.dart';
 
 class CartController extends GetxController {
   final CartRepo _repo = CartRepo();
@@ -18,6 +19,19 @@ class CartController extends GetxController {
     isLoading.value = true;
     items.assignAll(await _repo.fetchCart());
     isLoading.value = false;
+
+    // Trigger UI refresh across the app (ProductCard, etc.)
+    _refreshHomeController();
+  }
+
+  /// Refresh HomeController to update ProductCard UI
+  void _refreshHomeController() {
+    try {
+      final homeController = Get.find<HomeController>();
+      homeController.refreshCartState();
+    } catch (e) {
+      // HomeController might not be initialized yet
+    }
   }
 
   Future<void> addItem(int productId) async {
@@ -54,4 +68,20 @@ class CartController extends GetxController {
 
   double get totalAmount =>
       items.fold(0, (sum, e) => sum + e.subtotal);
+
+  // ================= CART STATE CHECK =================
+  /// Check if a product is already in cart by productId
+  /// Returns true if product exists in cart items
+  bool isInCart(String productId) {
+    return items.any((item) => item.productId == productId);
+  }
+
+  /// Get cart item by productId (returns null if not in cart)
+  CartItemModel? getCartItem(String productId) {
+    try {
+      return items.firstWhere((item) => item.productId == productId);
+    } catch (e) {
+      return null;
+    }
+  }
 }

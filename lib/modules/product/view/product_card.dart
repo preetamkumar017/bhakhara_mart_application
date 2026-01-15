@@ -4,16 +4,20 @@ import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/product_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
 import 'package:bhakharamart/modules/home/controller/home_controller.dart';
+import 'package:bhakharamart/modules/cart/controller/cart_controller.dart';
 
-class ProductCard extends GetView<HomeController> {
+class ProductCard extends StatelessWidget {
   final ProductModel product;
 
   const ProductCard({super.key, required this.product});
 
   @override
   Widget build(BuildContext context) {
+    final HomeController homeController = Get.find<HomeController>();
+    final CartController cartController = Get.find<CartController>();
+
     return GestureDetector(
-      onTap: () => controller.openProduct(product),
+      onTap: () => homeController.openProduct(product),
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -23,6 +27,7 @@ class ProductCard extends GetView<HomeController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// Product Image
             Expanded(
               child: Center(
                 child: product.image.isNotEmpty
@@ -35,16 +40,23 @@ class ProductCard extends GetView<HomeController> {
                     : const Icon(Icons.image_outlined),
               ),
             ),
+
+            /// Product Name
             Text(
               product.productName,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
+
+            /// Unit
             Text(
               product.unit,
               style: const TextStyle(fontSize: 12),
             ),
+
             const SizedBox(height: 4),
+
+            /// Price and Cart Action Row
             Row(
               children: [
                 Text(
@@ -52,10 +64,47 @@ class ProductCard extends GetView<HomeController> {
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
-                ElevatedButton(
-                  onPressed: () => controller.addToCart(product),
-                  child: const Text('ADD'),
-                ),
+
+                /// Reactive cart state check using Obx
+                Obx(() {
+                  final bool isInCart =
+                      cartController.isInCart(product.id);
+
+                  if (isInCart) {
+                    /// Product is in cart - show "Added" status
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: const Text(
+                        'Added',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
+
+                  /// Product not in cart - show Add button
+                  return ElevatedButton(
+                    onPressed: () => homeController.addToCart(product),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: const Size(0, 32),
+                    ),
+                    child: const Text(
+                      'ADD',
+                      style: TextStyle(fontSize: 11),
+                    ),
+                  );
+                }),
               ],
             ),
           ],

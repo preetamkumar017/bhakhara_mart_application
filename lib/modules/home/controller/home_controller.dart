@@ -84,7 +84,38 @@ class HomeController extends GetxController {
   }
 
   void addToCart(ProductModel product) {
-    cartController.addItem(int.parse(product.id));
+    // Prevent duplicate entries - check if already in cart
+    final productId = product.id;
+    if (cartController.isInCart(productId)) {
+      Get.snackbar(
+        'Already in Cart',
+        '${product.productName} is already in your cart',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+    cartController.addItem(int.parse(productId));
+  }
+
+  // ================= CART STATE CHECK =================
+  /// Reactive check if a product is in cart
+  /// Used by ProductCard to show "Added" status
+  /// Triggers rebuild when cart changes
+  bool isProductInCart(String productId) {
+    return cartController.isInCart(productId);
+  }
+
+  /// Get quantity of product in cart (returns 0 if not in cart)
+  int getProductQuantity(String productId) {
+    final cartItem = cartController.getCartItem(productId);
+    return cartItem?.quantity.toInt() ?? 0;
+  }
+
+  /// Trigger UI rebuild when cart changes
+  /// Call this after cart operations
+  void refreshCartState() {
+    update(); // Updates all GetBuilder listeners
   }
 
   // ================= COMMON =================
