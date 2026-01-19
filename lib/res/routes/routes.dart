@@ -3,6 +3,7 @@ import 'routes_name.dart';
 import '../../modules/splash/view/splash_view.dart';
 import '../../modules/onboarding/view/onboarding_view.dart';
 import '../../modules/auth/view/login_view.dart';
+import '../../modules/auth/view/register_view.dart';
 import '../../modules/navigation/view/main_nav_view.dart';
 import '../../modules/product/view/product_detail_view.dart';
 import '../../modules/cart/view/cart_view.dart';
@@ -26,6 +27,11 @@ class AppRoutes {
     GetPage(
       name: RoutesName.login,
       page: () => LoginView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.register,
+      page: () => RegisterView(),
       transition: Transition.rightToLeftWithFade,
     ),
     GetPage(

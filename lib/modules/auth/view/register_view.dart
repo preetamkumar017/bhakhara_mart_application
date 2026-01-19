@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
 import '../../../res/components/custom_textfield.dart';
-import '../../../res/routes/routes_name.dart';
-import '../controller/login_controller.dart';
+import '../controller/register_controller.dart';
 
-class LoginView extends StatelessWidget {
-  LoginView({super.key});
+class RegisterView extends StatelessWidget {
+  RegisterView({super.key});
 
-  final LoginController controller = Get.put(LoginController());
+  final RegisterController controller = Get.put(RegisterController());
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +34,25 @@ class LoginView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Back button
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(Icons.arrow_back_rounded),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
                     // App logo or illustration
                     Center(
                       child: CircleAvatar(
                         radius: 38,
                         backgroundColor: Theme.of(context).primaryColor.withOpacity(.1),
                         child: Icon(
-                          Icons.lock_outline_rounded,
+                          Icons.person_add_alt_1_outlined,
                           size: 48,
                           color: Theme.of(context).primaryColor,
                         ),
@@ -49,7 +60,7 @@ class LoginView extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     Text(
-                      'Welcome Back!',
+                      'Create Account!',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.w700,
@@ -58,7 +69,7 @@ class LoginView extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      "Login to your account",
+                      "Sign up to get started",
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: Colors.grey[600],
@@ -66,56 +77,48 @@ class LoginView extends StatelessWidget {
                     ),
                     const SizedBox(height: 28),
 
+                    /// NAME
+                    CustomTextField(
+                      controller: controller.nameController,
+                      hintText: 'Full Name',
+                      keyboardType: TextInputType.name,
+                    ),
+
+                    const SizedBox(height: 16),
+
                     /// MOBILE NUMBER
                     CustomTextField(
-                      controller: controller.mobileController..text = '9999999999',
+                      controller: controller.mobileController,
                       hintText: 'Mobile Number',
                       keyboardType: TextInputType.phone,
-                      // RESOLVED: Remove unsupported prefixIcon, instead wrap in InputDecoration
-                      // decoration: InputDecoration(
-                      //   prefixIcon: const Icon(Icons.phone_android_rounded),
-                      // ),
                     ),
 
                     const SizedBox(height: 16),
 
                     /// PASSWORD
                     CustomTextField(
-                      controller: controller.passwordController..text = 'password',
+                      controller: controller.passwordController,
                       hintText: 'Password',
                       obscureText: true,
-                      // RESOLVED: Remove unsupported prefixIcon, instead wrap in InputDecoration
-                      // decoration: InputDecoration(
-                      //   prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      // ),
                     ),
 
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {
-                          // Add logic for forgot password (if available)
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
+                    const SizedBox(height: 16),
+
+                    /// CONFIRM PASSWORD
+                    CustomTextField(
+                      controller: controller.confirmPasswordController,
+                      hintText: 'Confirm Password',
+                      obscureText: true,
                     ),
+
                     const SizedBox(height: 24),
 
-                    /// LOGIN BUTTON
+                    /// REGISTER BUTTON
                     Obx(() => CustomButton(
-                          label: 'Continue',
+                          label: 'Create Account',
                           loading: controller.isLoading.value,
-                          onPressed: controller.login,
+                          onPressed: controller.register,
                           fullWidth: true,
-                          // RESOLVED: Remove unsupported style param. Add borderRadius inside button if needed.
                         ),
                     ),
 
@@ -124,16 +127,14 @@ class LoginView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Don't have an account?",
+                          "Already have an account?",
                           style: TextStyle(color: Colors.grey[700]),
                         ),
                         const SizedBox(width: 4),
                         GestureDetector(
-                          onTap: () {
-                            Get.toNamed(RoutesName.register);
-                          },
+                          onTap: controller.navigateToLogin,
                           child: Text(
-                            'Sign Up',
+                            'Login',
                             style: TextStyle(
                               color: Theme.of(context).primaryColor,
                               fontWeight: FontWeight.bold,
@@ -152,3 +153,4 @@ class LoginView extends StatelessWidget {
     );
   }
 }
+

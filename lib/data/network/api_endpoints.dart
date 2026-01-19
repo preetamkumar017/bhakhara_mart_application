@@ -4,6 +4,7 @@ class ApiEndpoints {
 
   // Auth
   static const String login = "${baseUrl}customer/login";
+  static const String register = "${baseUrl}customer/register";
   static const String refreshToken = "${baseUrl}customer/refresh";
   static const String logout = "${baseUrl}customer/logout";
 
