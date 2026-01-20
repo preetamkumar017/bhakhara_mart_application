@@ -7,6 +7,7 @@ class CartItemModel {
   final double gst;
   final double quantity;
   final double subtotal;
+  final String image;
 
   CartItemModel({
     required this.id,
@@ -17,10 +18,15 @@ class CartItemModel {
     required this.gst,
     required this.quantity,
     required this.subtotal,
+    required this.image,
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
-    String parseString(dynamic val) => val?.toString() ?? '';
+    String parseString(dynamic val) {
+      if (val == null) return '';
+      return val.toString();
+    }
+    
     double parseDouble(dynamic val) {
       if (val == null) return 0.0;
       if (val is double) return val;
@@ -32,12 +38,13 @@ class CartItemModel {
     return CartItemModel(
       id: parseString(json['id']),
       productId: parseString(json['product_id']),
-      name: json['product_name'] ?? '',
-      unit: json['unit'] ?? '',
+      name: parseString(json['product_name']),
+      unit: parseString(json['unit']),
       price: parseDouble(json['sale_price']),
       gst: parseDouble(json['gst_percent']),
       quantity: parseDouble(json['quantity']),
       subtotal: parseDouble(json['subtotal']),
+      image: parseString(json['image']),
     );
   }
 }
