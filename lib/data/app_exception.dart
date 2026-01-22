@@ -85,3 +85,15 @@ class ForbiddenException extends AppExceptions {
 class ConflictException extends AppExceptions {
   ConflictException([String? message]) : super(message, "Conflict");
 }
+
+class ApiErrorException extends AppExceptions {
+  final dynamic responseData;
+
+  ApiErrorException([String? message, this.responseData]) : super(message, "API Error");
+
+  String get errorMessage => toString().replaceAll("API Error", "");
+
+  Map<String, dynamic>? getResponseData() {
+    return responseData is Map<String, dynamic> ? responseData : null;
+  }
+}

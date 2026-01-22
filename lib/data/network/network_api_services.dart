@@ -24,12 +24,23 @@ class NetworkApiServices extends BaseApiServices {
   Future<dynamic> getApi(String url) async {
     dynamic responseJson;
     try {
+      // Print request details
+      print('════════════════════════════════════════════════════════════');
+      print('🌐 API REQUEST: GET');
+      print('📍 URL: $url');
+      print('────────────────────────────────────────────────────────────');
+
       final response = await http
           .get(
         Uri.parse(url),
         headers: _defaultHeaders(),
       )
           .timeout(const Duration(seconds: 10));
+
+      // Print response details
+      print('📥 RESPONSE STATUS: ${response.statusCode}');
+      print('📥 RESPONSE BODY: ${response.body}');
+      print('════════════════════════════════════════════════════════════');
 
       responseJson = await _handleResponse(response, () => getApi(url));
     } on SocketException {
@@ -45,6 +56,13 @@ class NetworkApiServices extends BaseApiServices {
   Future<dynamic> postApi(String url, Map<String, dynamic> body) async {
     dynamic responseJson;
     try {
+      // Print request details
+      print('════════════════════════════════════════════════════════════');
+      print('🌐 API REQUEST: POST');
+      print('📍 URL: $url');
+      print('📤 REQUEST BODY: ${jsonEncode(body)}');
+      print('────────────────────────────────────────────────────────────');
+
       final response = await http
           .post(
         Uri.parse(url),
@@ -53,6 +71,10 @@ class NetworkApiServices extends BaseApiServices {
       )
           .timeout(const Duration(seconds: 10));
 
+      // Print response details
+      print('📥 RESPONSE STATUS: ${response.statusCode}');
+      print('📥 RESPONSE BODY: ${response.body}');
+      print('════════════════════════════════════════════════════════════');
 
       responseJson = await _handleResponse(response, () => postApi(url, body));
     } on SocketException {
@@ -180,10 +202,25 @@ class NetworkApiServices extends BaseApiServices {
     http.Response response,
     Function() retryFn,
   ) async {
+    // Parse response body as JSON if possible
+    dynamic responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+    } catch (e) {
+      responseBody = response.body;
+    }
+
     switch (response.statusCode) {
       case 200:
       case 201:
-        return jsonDecode(response.body);
+        // Handle API-level status field (like {"status": false, "message": "..."})
+        if (responseBody is Map<String, dynamic>) {
+          if (responseBody['status'] == false) {
+            final message = responseBody['message'] ?? 'Request failed';
+            throw ApiErrorException(message, responseBody);
+          }
+        }
+        return responseBody;
 
       case 400:
         throw BadRequestException(response.body);
@@ -193,6 +230,11 @@ class NetworkApiServices extends BaseApiServices {
         return await _handleUnauthorized(retryFn);
 
       case 403:
+        // Handle 403 with JSON error message
+        if (responseBody is Map<String, dynamic>) {
+          final message = responseBody['message'] ?? 'Access denied';
+          throw ApiErrorException(message, responseBody);
+        }
         throw ForbiddenException(response.body);
 
       case 404:

@@ -9,4 +9,7 @@ class RoutesName {
   static const String cart = '/cart';
   static const String profile = '/profile';
   static const String checkout = '/checkout';
+  static const String addressManagement = '/address';
+  static const String orders = '/orders';
+  static String orderDetail(int orderId) => '/orders/$orderId';
 }

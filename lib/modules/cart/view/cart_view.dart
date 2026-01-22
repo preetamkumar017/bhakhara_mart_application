@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/cart_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
+import 'package:bhakharamart/res/routes/routes_name.dart';
 import '../controller/cart_controller.dart';
 
 class CartView extends StatelessWidget {
@@ -358,7 +359,7 @@ class CartView extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () => Get.toNamed(RoutesName.checkout),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 elevation: 0,

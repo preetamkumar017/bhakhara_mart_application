@@ -10,6 +10,8 @@ import '../../modules/cart/view/cart_view.dart';
 import '../../modules/profile/view/profile_view.dart';
 import '../../modules/search/view/search_view.dart';
 import '../../modules/checkout/view/checkout_view.dart';
+import '../../modules/orders/view/orders_view.dart';
+import '../../modules/orders/view/order_detail_view.dart';
 
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [
@@ -64,5 +66,21 @@ class AppRoutes {
       page: () => CheckoutView(),
       transition: Transition.rightToLeftWithFade,
     ),
+    GetPage(
+      name: RoutesName.addressManagement,
+      page: () => AddressManagementView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.orders,
+      page: () => OrdersView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: '/orders/:orderId',
+      page: () => OrderDetailView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
   ];
 }
+
