@@ -68,26 +68,18 @@ class LoginView extends StatelessWidget {
 
                     /// MOBILE NUMBER
                     CustomTextField(
-                      controller: controller.mobileController..text = '9999999999',
+                      controller: controller.mobileController,
                       hintText: 'Mobile Number',
                       keyboardType: TextInputType.phone,
-                      // RESOLVED: Remove unsupported prefixIcon, instead wrap in InputDecoration
-                      // decoration: InputDecoration(
-                      //   prefixIcon: const Icon(Icons.phone_android_rounded),
-                      // ),
                     ),
 
                     const SizedBox(height: 16),
 
                     /// PASSWORD
                     CustomTextField(
-                      controller: controller.passwordController..text = 'password',
+                      controller: controller.passwordController,
                       hintText: 'Password',
                       obscureText: true,
-                      // RESOLVED: Remove unsupported prefixIcon, instead wrap in InputDecoration
-                      // decoration: InputDecoration(
-                      //   prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      // ),
                     ),
 
                     const SizedBox(height: 10),

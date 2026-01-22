@@ -292,36 +292,46 @@ class ProductCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         /// Price Section
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            /// Sale Price
-            Text(
-              '₹${product.salePrice.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            /// Original Price (if discount exists)
-            if (discountPercent != null && discountPercent! > 0)
-              Text(
-                '₹${(product.salePrice / (1 - discountPercent! / 100)).toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  decoration: TextDecoration.lineThrough,
+        Expanded(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                /// Sale Price
+                Text(
+                  '₹${product.salePrice.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-          ],
+                /// Original Price (if discount exists)
+                if (discountPercent != null && discountPercent! > 0)
+                  Text(
+                    '₹${(product.salePrice / (1 - discountPercent! / 100)).toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
 
-        const Spacer(),
-
         /// Cart Action
-        _buildCartAction(homeController, cartController, isInCart),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 90),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: _buildCartAction(homeController, cartController, isInCart),
+          ),
+        ),
       ],
     );
   }
@@ -355,29 +365,29 @@ class ProductCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [AppColors.primary, AppColors.primaryVariant],
         ),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           onTap: () => homeController.addToCart(product),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             child: const Text(
               'ADD',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
-                letterSpacing: 0.8,
+                letterSpacing: 0.6,
               ),
             ),
           ),
@@ -387,51 +397,53 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildQuantityControls(CartController cartController, CartItemModel cartItem) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: AppColors.primary.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          /// Decrease Button
-          _buildQuantityButton(
-            icon: Icons.remove,
-            onTap: () => cartController.decreaseQty(cartItem),
+    return IntrinsicWidth(
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.2),
+            width: 1,
           ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /// Decrease Button
+            _buildQuantityButton(
+              icon: Icons.remove,
+              onTap: () => cartController.decreaseQty(cartItem),
+            ),
 
-          /// Quantity Text
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 150),
-            transitionBuilder: (child, animation) {
-              return ScaleTransition(scale: animation, child: child);
-            },
-            child: Container(
-              key: ValueKey(cartItem.quantity.toInt()),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                '${cartItem.quantity.toInt()}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+            /// Quantity Text
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              transitionBuilder: (child, animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: Container(
+                key: ValueKey(cartItem.quantity.toInt()),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Text(
+                  '${cartItem.quantity.toInt()}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          /// Increase Button
-          _buildQuantityButton(
-            icon: Icons.add,
-            onTap: () => cartController.increaseQty(cartItem),
-          ),
-        ],
+            /// Increase Button
+            _buildQuantityButton(
+              icon: Icons.add,
+              onTap: () => cartController.increaseQty(cartItem),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -442,19 +454,19 @@ class ProductCard extends StatelessWidget {
   }) {
     return Material(
       color: AppColors.primary,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: BorderRadius.circular(4),
       child: InkWell(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: BorderRadius.circular(4),
         onTap: onTap,
         child: Container(
-          width: 28,
-          height: 28,
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(4),
           ),
           child: Icon(
             icon,
-            size: 16,
+            size: 14,
             color: Colors.white,
           ),
         ),
