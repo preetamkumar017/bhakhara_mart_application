@@ -367,15 +367,17 @@ class AddressView extends StatelessWidget {
 
     try {
       isAdding.value = true;
-      await _addressRepo.addAddress(
+      final success = await _addressRepo.addAddress(
         addressLine1: addressLine1Controller.text.trim(),
         addressLine2: addressLine2Controller.text.trim(),
         city: cityController.text.trim(),
         state: stateController.text.trim(),
         pincode: pincodeController.text.trim(),
       );
-      SnackBarUtils.showSuccess('Address added successfully');
-      await fetchAddresses();
+      if (success) {
+        SnackBarUtils.showSuccess('Address added successfully');
+        await fetchAddresses();
+      }
     } catch (e) {
       SnackBarUtils.showError('Failed to add address: $e');
     } finally {
@@ -395,7 +397,7 @@ class AddressView extends StatelessWidget {
 
     try {
       isAdding.value = true;
-      await _addressRepo.updateAddress(
+      final success = await _addressRepo.updateAddress(
         addressId: int.parse(address.id),
         addressLine1: addressLine1Controller.text.trim(),
         addressLine2: addressLine2Controller.text.trim(),
@@ -403,8 +405,10 @@ class AddressView extends StatelessWidget {
         state: stateController.text.trim(),
         pincode: pincodeController.text.trim(),
       );
-      SnackBarUtils.showSuccess('Address updated successfully');
-      await fetchAddresses();
+      if (success) {
+        SnackBarUtils.showSuccess('Address updated successfully');
+        await fetchAddresses();
+      }
     } catch (e) {
       SnackBarUtils.showError('Failed to update address: $e');
     } finally {

@@ -22,8 +22,9 @@ class AddressRepo {
 
   /// Add a new address
   /// 
-  /// Returns the newly created [AddressModel]
-  Future<AddressModel> addAddress({
+  /// Returns true on success
+  /// Throws exception on API error
+  Future<bool> addAddress({
     required String addressLine1,
     required String addressLine2,
     required String city,
@@ -46,12 +47,7 @@ class AddressRepo {
     );
 
     if (response['status'] == true) {
-      // Check if response has data, otherwise refresh addresses list
-      if (response['data'] != null) {
-        return AddressModel.fromJson(response['data']);
-      }
-      // Return a placeholder - actual address will be fetched on refresh
-      throw Exception('Address added but details not returned');
+      return true;
     } else {
       throw Exception(response['message'] ?? 'Failed to add address');
     }
@@ -79,18 +75,9 @@ class AddressRepo {
 
   /// Update an existing address
   /// 
-  /// [addressId] - Required: The ID of the address to update
-  /// [addressLine1] - Primary address line (optional)
-  /// [addressLine2] - Secondary address line (optional)
-  /// [city] - City name (optional)
-  /// [state] - State name (optional)
-  /// [pincode] - 6-digit pincode (optional)
-  /// [latitude] - GPS latitude (optional)
-  /// [longitude] - GPS longitude (optional)
-  /// 
-  /// Returns updated [AddressModel] on success
+  /// Returns true on success
   /// Throws exception on validation error or API error
-  Future<AddressModel> updateAddress({
+  Future<bool> updateAddress({
     required int addressId,
     String? addressLine1,
     String? addressLine2,
@@ -122,12 +109,7 @@ class AddressRepo {
     );
 
     if (response['status'] == true) {
-      if (response['data'] != null) {
-        return AddressModel.fromJson(response['data']);
-      } else {
-        // If no data returned, throw exception
-        throw Exception('Address updated but details not returned');
-      }
+      return true;
     } else {
       throw Exception(response['message'] ?? 'Failed to update address');
     }

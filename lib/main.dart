@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
       initialBinding: AppBinding(), // ✅ IMPORTANT LINE
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.light, // Force light theme by default
       initialRoute: RoutesName.splash,
       translations: Languages(),
       locale: const Locale('hi', 'IN'),
