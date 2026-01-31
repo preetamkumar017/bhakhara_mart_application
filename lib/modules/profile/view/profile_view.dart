@@ -17,58 +17,140 @@ class ProfileView extends StatelessWidget {
         centerTitle: true,
         backgroundColor: AppColors.surface,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => controller.refreshProfile(),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
+      body: Obx(() {
+        // Show loading indicator
+        if (controller.isLoading.value) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-            /// Profile Avatar Section
-            _buildProfileAvatar(),
+        // Show error state
+        if (controller.errorMessage.value.isNotEmpty && !controller.hasProfile) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 64,
+                  color: AppColors.error,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  controller.errorMessage.value,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => controller.fetchProfile(),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
 
-            const SizedBox(height: 16),
+        return SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
 
-            /// User Information Section
-            _buildUserInfoSection(),
+              /// Profile Avatar Section
+              _buildProfileAvatar(),
 
-            const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-            /// Profile Actions/Options Section
-            _buildProfileOptionsSection(),
+              /// User Information Section
+              _buildUserInfoSection(),
 
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
+              const SizedBox(height: 24),
+
+              /// Profile Actions/Options Section
+              _buildProfileOptionsSection(),
+
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      }),
     );
   }
 
   /// Build profile avatar with icon
   Widget _buildProfileAvatar() {
     return Center(
-      child: Container(
-        width: 100,
-        height: 100,
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.primary,
-            width: 2,
-          ),
-        ),
-        child: const Icon(
-          Icons.person,
-          size: 50,
-          color: AppColors.primary,
-        ),
-      ),
+      child: Obx(() {
+        final fullImageUrl = controller.customer.value.fullProfileImage;
+        
+        return Stack(
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
+              ),
+              child: fullImageUrl != null && fullImageUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(50),
+                      child: Image.network(
+                        fullImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.person,
+                            size: 50,
+                            color: AppColors.primary,
+                          );
+                        },
+                      ),
+                    )
+                  : const Icon(
+                      Icons.person,
+                      size: 50,
+                      color: AppColors.primary,
+                    ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.surface, width: 2),
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  size: 16,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
+        );
+      }),
     );
   }
 
   /// Build user information section (Name, Email, Mobile)
   Widget _buildUserInfoSection() {
-    return Container(
+    return Obx(() => Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -82,7 +164,9 @@ class ProfileView extends StatelessWidget {
           _buildInfoRow(
             icon: Icons.person_outline,
             label: 'Name',
-            value: 'John Doe', // TODO: Replace with dynamic user data
+            value: controller.customer.value.name.isEmpty 
+                ? 'Not set' 
+                : controller.customer.value.name,
           ),
           const Divider(height: 24),
 
@@ -90,7 +174,9 @@ class ProfileView extends StatelessWidget {
           _buildInfoRow(
             icon: Icons.email_outlined,
             label: 'Email',
-            value: 'john.doe@email.com', // TODO: Replace with dynamic user data
+            value: controller.customer.value.email.isEmpty 
+                ? 'Not set' 
+                : controller.customer.value.email,
           ),
           const Divider(height: 24),
 
@@ -98,11 +184,29 @@ class ProfileView extends StatelessWidget {
           _buildInfoRow(
             icon: Icons.phone_outlined,
             label: 'Mobile',
-            value: '+91 98765 43210', // TODO: Replace with dynamic user data
+            value: controller.customer.value.mobile.isEmpty 
+                ? 'Not set' 
+                : controller.customer.value.mobile,
+          ),
+          const Divider(height: 24),
+
+          /// Date of Birth
+          _buildInfoRow(
+            icon: Icons.cake_outlined,
+            label: 'Date of Birth',
+            value: controller.customer.value.formattedDOB ?? 'Not set',
+          ),
+          const Divider(height: 24),
+
+          /// Gender
+          _buildInfoRow(
+            icon: Icons.person_outline,
+            label: 'Gender',
+            value: controller.customer.value.displayGender ?? 'Not set',
           ),
         ],
       ),
-    );
+    ));
   }
 
   /// Build individual info row for user details
@@ -215,8 +319,8 @@ class ProfileView extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: option.isDestructive
-                ? AppColors.error.withOpacity(0.1)
-                : AppColors.primary.withOpacity(0.1),
+                ? AppColors.error.withValues(alpha: 0.1)
+                : AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(

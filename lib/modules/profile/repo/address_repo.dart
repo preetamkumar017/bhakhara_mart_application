@@ -76,5 +76,61 @@ class AddressRepo {
 
     return response['status'] == true;
   }
+
+  /// Update an existing address
+  /// 
+  /// [addressId] - Required: The ID of the address to update
+  /// [addressLine1] - Primary address line (optional)
+  /// [addressLine2] - Secondary address line (optional)
+  /// [city] - City name (optional)
+  /// [state] - State name (optional)
+  /// [pincode] - 6-digit pincode (optional)
+  /// [latitude] - GPS latitude (optional)
+  /// [longitude] - GPS longitude (optional)
+  /// 
+  /// Returns updated [AddressModel] on success
+  /// Throws exception on validation error or API error
+  Future<AddressModel> updateAddress({
+    required int addressId,
+    String? addressLine1,
+    String? addressLine2,
+    String? city,
+    String? state,
+    String? pincode,
+    String? latitude,
+    String? longitude,
+  }) async {
+    // Validate addressId is provided
+    if (addressId <= 0) {
+      throw Exception('address_id required');
+    }
+
+    // Build update payload with only provided fields
+    final Map<String, dynamic> payload = {'address_id': addressId};
+    
+    if (addressLine1 != null) payload['address_line1'] = addressLine1;
+    if (addressLine2 != null) payload['address_line2'] = addressLine2;
+    if (city != null) payload['city'] = city;
+    if (state != null) payload['state'] = state;
+    if (pincode != null) payload['pincode'] = pincode;
+    if (latitude != null) payload['latitude'] = latitude;
+    if (longitude != null) payload['longitude'] = longitude;
+
+    final response = await _api.postApi(
+      ApiEndpoints.addressUpdate,
+      payload,
+    );
+
+    if (response['status'] == true) {
+      if (response['data'] != null) {
+        return AddressModel.fromJson(response['data']);
+      } else {
+        // If no data returned, throw exception
+        throw Exception('Address updated but details not returned');
+      }
+    } else {
+      throw Exception(response['message'] ?? 'Failed to update address');
+    }
+  }
 }
 

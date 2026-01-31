@@ -27,9 +27,14 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HomeController homeController = Get.find<HomeController>();
-    final CartController cartController = Get.find<CartController>();
-    final bool isInCart = cartController.isInCart(product.id).obs.value;
+    final homeController = Get.isRegistered<HomeController>() ? Get.find<HomeController>() : null;
+    final cartController = Get.isRegistered<CartController>() ? Get.find<CartController>() : null;
+    final bool isInCart = cartController?.isInCart(product.id) ?? false;
+
+    // Return a placeholder if controllers aren't ready
+    if (homeController == null || cartController == null) {
+      return _buildPlaceholderCard();
+    }
 
     return GestureDetector(
       onTap: () => homeController.openProduct(product),
@@ -204,6 +209,87 @@ class ProductCard extends StatelessWidget {
         Icons.broken_image_outlined,
         size: 40,
         color: AppColors.textSecondary.withOpacity(0.3),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderCard() {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 1,
+          ),
+        ],
+        border: Border.all(
+          color: AppColors.divider.withOpacity(0.6),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Product Image Container (placeholder)
+          Container(
+            height: 140,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+          ),
+          /// Placeholder content
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 14,
+                  width: 60,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  height: 14,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  height: 12,
+                  width: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 36,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

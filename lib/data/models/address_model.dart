@@ -10,6 +10,7 @@ class AddressModel {
   String? longitude;
   String isDefault;
   final String createdAt;
+  String updatedAt;
 
   AddressModel({
     required this.id,
@@ -23,6 +24,7 @@ class AddressModel {
     this.longitude,
     required this.isDefault,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +45,7 @@ class AddressModel {
       longitude: json['longitude']?.toString(),
       isDefault: parseString(json['is_default']),
       createdAt: parseString(json['created_at']),
+      updatedAt: parseString(json['updated_at']),
     );
   }
 
@@ -82,6 +85,7 @@ class AddressModel {
       'longitude': longitude,
       'is_default': isDefault,
       'created_at': createdAt,
+      'updated_at': updatedAt,
     };
   }
 }

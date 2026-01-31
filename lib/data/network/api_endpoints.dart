@@ -43,6 +43,7 @@ class ApiEndpoints {
   // Address Management
   static const String addresses = "${baseUrl}addresses";
   static const String addressAdd = "${baseUrl}addresses/add";
+  static const String addressUpdate = "${baseUrl}addresses/update";
   static const String addressSetDefault = "${baseUrl}addresses/set-default";
   static const String addressDelete = "${baseUrl}addresses/delete";
 }

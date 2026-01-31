@@ -8,6 +8,8 @@ import '../../modules/navigation/view/main_nav_view.dart';
 import '../../modules/product/view/product_detail_view.dart';
 import '../../modules/cart/view/cart_view.dart';
 import '../../modules/profile/view/profile_view.dart';
+import '../../modules/profile/view/edit_profile_view.dart';
+import '../../modules/profile/view/address_view.dart';
 import '../../modules/search/view/search_view.dart';
 import '../../modules/checkout/view/checkout_view.dart';
 import '../../modules/orders/view/orders_view.dart';
@@ -62,13 +64,18 @@ class AppRoutes {
       transition: Transition.rightToLeftWithFade,
     ),
     GetPage(
-      name: RoutesName.checkout,
-      page: () => CheckoutView(),
+      name: '/edit-profile',
+      page: () => EditProfileView(),
       transition: Transition.rightToLeftWithFade,
     ),
     GetPage(
-      name: RoutesName.addressManagement,
-      page: () => AddressManagementView(),
+      name: '/address',
+      page: () => AddressView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.checkout,
+      page: () => CheckoutView(),
       transition: Transition.rightToLeftWithFade,
     ),
     GetPage(

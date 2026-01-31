@@ -14,7 +14,9 @@ class CategoryTab {
 class HomeController extends GetxController {
   final CategoryRepo _categoryRepo = CategoryRepo();
   final ProductRepo _productRepo = ProductRepo();
-  final CartController cartController = Get.find<CartController>();
+  
+  /// Lazy initialization to avoid CartController not found error
+  late final CartController cartController;
 
   final isCategoryLoading = false.obs;
   final isProductLoading = false.obs;
@@ -28,6 +30,7 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    cartController = Get.find<CartController>();
     loadCategories();
   }
 
