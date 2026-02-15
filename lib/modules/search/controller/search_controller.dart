@@ -8,36 +8,52 @@ class SearchVm extends GetxController {
   final query = ''.obs;
   final suggestions = <Map<String, dynamic>>[].obs;
   final searchResults = <ProductModel>[].obs;
-  final recent = <String>['Milk', 'Bread', 'Rice', 'Eggs'].obs;
   
   final isLoading = false.obs;
   final isSearching = false.obs;
   
   final errorMessage = ''.obs;
+  
+  // Track if user explicitly triggered search
+  bool _explicitSearch = false;
 
   // Method called when user types in search field
   void onSearchChanged(String value) {
     query.value = value;
+    _explicitSearch = false;
     
     if (value.isEmpty) {
       _clearResults();
       return;
     }
     
-    // For 1 character, show suggestions
-    if (value.length == 1) {
+    // For 1-2 characters, always show suggestions (not search results)
+    if (value.length <= 2) {
       _fetchSuggestions(value);
-    } 
-    // For 2+ characters, search products
-    else if (value.length >= 2) {
-      _searchProducts(value);
     }
+    // For 3+ characters, if user explicitly searched, show results
+    // Otherwise continue showing suggestions
+    else if (_explicitSearch) {
+      _searchProducts(value);
+    } else {
+      // Still show suggestions for 3+ chars until user explicitly searches
+      _fetchSuggestions(value);
+    }
+  }
+
+  // Explicit search - triggered by user
+  void performSearch(String value) {
+    if (value.isEmpty) return;
+    _explicitSearch = true;
+    query.value = value;
+    _searchProducts(value);
   }
 
   void _clearResults() {
     suggestions.clear();
     searchResults.clear();
     errorMessage.value = '';
+    _explicitSearch = false;
   }
 
   Future<void> _fetchSuggestions(String value) async {
@@ -47,7 +63,6 @@ class SearchVm extends GetxController {
       
       final results = await _productRepo.getProductSuggestions(value);
       suggestions.value = results;
-      searchResults.clear();
     } catch (e) {
       errorMessage.value = 'Failed to load suggestions';
       suggestions.clear();
@@ -73,11 +88,8 @@ class SearchVm extends GetxController {
   }
 
   void useSuggestion(String term) {
-    onSearchChanged(term);
-  }
-
-  void useRecent(String term) {
-    onSearchChanged(term);
+    // When selecting a suggestion, perform search
+    performSearch(term);
   }
 
   void clearSearch() {

@@ -17,7 +17,6 @@ class _SearchViewState extends State<SearchView> {
   @override
   void initState() {
     super.initState();
-    // Set initial focus
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(FocusNode());
     });
@@ -27,6 +26,14 @@ class _SearchViewState extends State<SearchView> {
   void dispose() {
     textController.dispose();
     super.dispose();
+  }
+
+  // Trigger explicit search
+  void _doSearch() {
+    final query = textController.text.trim();
+    if (query.isNotEmpty) {
+      controller.performSearch(query);
+    }
   }
 
   @override
@@ -41,33 +48,51 @@ class _SearchViewState extends State<SearchView> {
       ),
       body: Column(
         children: [
-          // Search Input
+          // Search Input with Button
           Padding(
             padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: textController,
-              onChanged: controller.onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search for products...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: Obx(() {
-                  if (controller.query.value.isNotEmpty) {
-                    return IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        textController.clear();
-                        controller.clearSearch();
-                      },
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: textController,
+                    onChanged: controller.onSearchChanged,
+                    onSubmitted: (_) => _doSearch(),
+                    decoration: InputDecoration(
+                      hintText: 'Search for products...',
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: Obx(() {
+                        if (controller.query.value.isNotEmpty) {
+                          return IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              textController.clear();
+                              controller.clearSearch();
+                            },
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[100],
+                    ),
+                  ),
                 ),
-                filled: true,
-                fillColor: Colors.grey[100],
-              ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _doSearch,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Search'),
+                ),
+              ],
             ),
           ),
 
@@ -108,22 +133,17 @@ class _SearchViewState extends State<SearchView> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              // Empty query - show recent searches
+              // Empty query - show empty state
               if (controller.query.value.isEmpty) {
-                return _buildRecentSearches();
+                return _buildEmptyState();
               }
 
-              // Show suggestions for short queries (1 character)
-              if (controller.query.value.length == 1) {
-                if (controller.suggestions.isEmpty) {
-                  return const Center(
-                    child: Text('No suggestions found'),
-                  );
-                }
+              // Show suggestions (for 1-2 chars or until explicit search)
+              if (controller.suggestions.isNotEmpty && controller.searchResults.isEmpty) {
                 return _buildSuggestionsList();
               }
 
-              // Show search results for longer queries (2+ characters)
+              // Show search results (after explicit search)
               if (controller.searchResults.isEmpty) {
                 return Center(
                   child: Column(
@@ -150,32 +170,26 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 
-  Widget _buildRecentSearches() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text(
-            'Recent Searches',
+          Icon(Icons.search, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            'Search for products',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: controller.recent
-                .map((term) => ActionChip(
-                      label: Text(term),
-                      onPressed: () {
-                        textController.text = term;
-                        controller.useRecent(term);
-                      },
-                    ))
-                .toList(),
+          const SizedBox(height: 8),
+          Text(
+            'Type at least 3 characters and tap Search',
+            style: TextStyle(
+              color: Colors.grey[500],
+            ),
           ),
         ],
       ),
@@ -183,19 +197,38 @@ class _SearchViewState extends State<SearchView> {
   }
 
   Widget _buildSuggestionsList() {
-    return ListView.builder(
-      itemCount: controller.suggestions.length,
-      itemBuilder: (context, index) {
-        final item = controller.suggestions[index];
-        return ListTile(
-          leading: const Icon(Icons.search),
-          title: Text(item['product_name'] ?? ''),
-          onTap: () {
-            textController.text = item['product_name'] ?? '';
-            controller.useSuggestion(item['product_name'] ?? '');
-          },
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Suggestions (${controller.suggestions.length})',
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: controller.suggestions.length,
+            itemBuilder: (context, index) {
+              final item = controller.suggestions[index];
+              return ListTile(
+                leading: const Icon(Icons.search),
+                title: Text(item['product_name'] ?? ''),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  textController.text = item['product_name'] ?? '';
+                  controller.useSuggestion(item['product_name'] ?? '');
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
