@@ -20,6 +20,11 @@ class ApiEndpoints {
     return '$baseUrl/categories/$categoryId/products';
   }
 
+  // Search & Suggestions
+  static const String productsSuggest = "${baseUrl}products/suggest";
+  static String productsSearch(String query, int page, int limit) =>
+      "${baseUrl}products/search?q=$query&page=$page&limit=$limit";
+
   // Inventory
   static const String inventory = "${baseUrl}inventory";
   static String inventoryProduct(int productId) => "${baseUrl}inventory/product/$productId";

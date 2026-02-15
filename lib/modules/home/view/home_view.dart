@@ -37,8 +37,8 @@ class HomeView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🔍 SEARCH FUNCTIONALITY - COMMENTED OUT FOR NOW
-                // _buildHeader(),
+                // 🔍 SEARCH FUNCTIONALITY
+                _buildHeader(),
                 const SizedBox(height: 8),
                 _buildTabBar(),
                 Expanded(child: _buildTabBarView()),
@@ -51,20 +51,36 @@ class HomeView extends StatelessWidget {
     });
   }
 
-  // 🔍 SEARCH FUNCTIONALITY - COMMENTED OUT FOR NOW
-  // Widget _buildHeader() {
-  //   return Padding(
-  //     padding: const EdgeInsets.all(16),
-  //     child: TextField(
-  //       onTap: controller.openSearch,
-  //       decoration: const InputDecoration(
-  //         hintText: "Search for products",
-  //         prefixIcon: Icon(Icons.search),
-  //         border: OutlineInputBorder(),
-  //       ),
-  //     ),
-  //   );
-  // }
+  // 🔍 SEARCH FUNCTIONALITY
+  Widget _buildHeader() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: GestureDetector(
+        onTap: controller.openSearch,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.search, color: Colors.grey[600]),
+              const SizedBox(width: 12),
+              Text(
+                "Search for products",
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /// 🔥 Category as TAB (UI same chip style)
   Widget _buildTabBar() {
