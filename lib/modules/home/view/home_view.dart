@@ -101,6 +101,7 @@ class HomeView extends StatelessWidget {
   /// 🔥 Products change with tab
   Widget _buildTabBarView() {
     return TabBarView(
+       physics: const NeverScrollableScrollPhysics(), 
       children: controller.tabs.map((tab) {
         return Obx(() {
           if (controller.isProductLoading.value) {
