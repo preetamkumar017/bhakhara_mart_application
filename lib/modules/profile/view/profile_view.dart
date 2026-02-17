@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
+import 'package:bhakharamart/res/routes/routes_name.dart';
 import '../controller/profile_controller.dart';
 
 class ProfileView extends StatelessWidget {
@@ -271,19 +272,19 @@ class ProfileView extends StatelessWidget {
         icon: Icons.help_outline,
         title: 'Help & Support',
         subtitle: 'Get help and contact support',
-        onTap: () => _showComingSoonDialog('Help & Support'),
+        onTap: () => Get.toNamed(RoutesName.helpSupport),
       ),
       _ProfileOption(
         icon: Icons.privacy_tip_outlined,
         title: 'Privacy Policy',
         subtitle: 'Read our privacy policy',
-        onTap: () => _showComingSoonDialog('Privacy Policy'),
+        onTap: () => Get.toNamed(RoutesName.privacyPolicy),
       ),
       _ProfileOption(
         icon: Icons.description_outlined,
         title: 'Terms & Conditions',
         subtitle: 'Read terms of service',
-        onTap: () => _showComingSoonDialog('Terms & Conditions'),
+        onTap: () => Get.toNamed(RoutesName.termsConditions),
       ),
       _ProfileOption(
         icon: Icons.logout,
@@ -377,21 +378,6 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  /// Show "Coming Soon" dialog for unimplemented features
-  void _showComingSoonDialog(String feature) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Coming Soon'),
-        content: Text('$feature feature is under development.'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Model class for profile options

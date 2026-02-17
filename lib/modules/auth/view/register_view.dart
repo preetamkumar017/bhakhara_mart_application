@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
 import '../../../res/components/custom_textfield.dart';
+import '../../../res/routes/routes_name.dart';
 import '../controller/register_controller.dart';
 
 class RegisterView extends StatelessWidget {
@@ -111,7 +113,50 @@ class RegisterView extends StatelessWidget {
                       obscureText: true,
                     ),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
+
+                    /// TERMS & CONDITIONS AGREEMENT
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            height: 1.5,
+                          ),
+                          children: [
+                            const TextSpan(
+                              text: 'By creating an account, you agree to our\n',
+                            ),
+                            TextSpan(
+                              text: 'Terms & Conditions',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Get.toNamed(RoutesName.termsConditions),
+                            ),
+                            const TextSpan(text: ' and '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Get.toNamed(RoutesName.privacyPolicy),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
 
                     /// REGISTER BUTTON
                     Obx(() => CustomButton(

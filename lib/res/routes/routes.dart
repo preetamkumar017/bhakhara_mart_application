@@ -14,6 +14,9 @@ import '../../modules/search/view/search_view.dart';
 import '../../modules/checkout/view/checkout_view.dart';
 import '../../modules/orders/view/orders_view.dart';
 import '../../modules/orders/view/order_detail_view.dart';
+import '../../modules/legal/view/privacy_policy_view.dart';
+import '../../modules/legal/view/terms_conditions_view.dart';
+import '../../modules/legal/view/help_support_view.dart';
 
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [
@@ -86,6 +89,21 @@ class AppRoutes {
     GetPage(
       name: '/orders/:orderId',
       page: () => OrderDetailView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.privacyPolicy,
+      page: () => const PrivacyPolicyView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.termsConditions,
+      page: () => const TermsConditionsView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.helpSupport,
+      page: () => const HelpSupportView(),
       transition: Transition.rightToLeftWithFade,
     ),
   ];

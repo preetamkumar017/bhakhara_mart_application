@@ -11,5 +11,8 @@ class RoutesName {
   static const String checkout = '/checkout';
   static const String addressManagement = '/address';
   static const String orders = '/orders';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String termsConditions = '/terms-conditions';
+  static const String helpSupport = '/help-support';
   static String orderDetail(int orderId) => '/orders/$orderId';
 }

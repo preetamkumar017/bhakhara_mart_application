@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
 import '../../../res/components/custom_textfield.dart';
@@ -133,6 +134,46 @@ class LoginView extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// LEGAL LINKS
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[500],
+                            height: 1.4,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Terms & Conditions',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Get.toNamed(RoutesName.termsConditions),
+                            ),
+                            const TextSpan(text: '  •  '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: TextStyle(
+                                color: Theme.of(context).primaryColor,
+                                fontWeight: FontWeight.w500,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => Get.toNamed(RoutesName.privacyPolicy),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
