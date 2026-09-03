@@ -15,12 +15,27 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  late final RegisterController controller;
+  // TextEditingControllers live here — properly disposed in dispose()
+  final _nameController = TextEditingController();
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  late final RegisterController _controller;
 
   @override
   void initState() {
     super.initState();
-    controller = Get.put(RegisterController());
+    _controller = Get.put(RegisterController());
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _mobileController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,7 +63,6 @@ class _RegisterViewState extends State<RegisterView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Back button
                     Align(
                       alignment: Alignment.centerLeft,
                       child: IconButton(
@@ -60,7 +74,6 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     const SizedBox(height: 8),
 
-                    // App logo or illustration
                     Center(
                       child: CircleAvatar(
                         radius: 38,
@@ -91,43 +104,31 @@ class _RegisterViewState extends State<RegisterView> {
                     ),
                     const SizedBox(height: 28),
 
-                    /// NAME
                     CustomTextField(
-                      controller: controller.nameController,
+                      controller: _nameController,
                       hintText: 'Full Name',
                       keyboardType: TextInputType.name,
                     ),
-
                     const SizedBox(height: 16),
-
-                    /// MOBILE NUMBER
                     CustomTextField(
-                      controller: controller.mobileController,
+                      controller: _mobileController,
                       hintText: 'Mobile Number',
                       keyboardType: TextInputType.phone,
                     ),
-
                     const SizedBox(height: 16),
-
-                    /// PASSWORD
                     CustomTextField(
-                      controller: controller.passwordController,
+                      controller: _passwordController,
                       hintText: 'Password',
                       obscureText: true,
                     ),
-
                     const SizedBox(height: 16),
-
-                    /// CONFIRM PASSWORD
                     CustomTextField(
-                      controller: controller.confirmPasswordController,
+                      controller: _confirmPasswordController,
                       hintText: 'Confirm Password',
                       obscureText: true,
                     ),
 
                     const SizedBox(height: 20),
-
-                    /// TERMS & CONDITIONS AGREEMENT
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: RichText(
@@ -167,14 +168,17 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 20),
 
-                    /// REGISTER BUTTON
                     Obx(() => CustomButton(
                           label: 'Create Account',
-                          loading: controller.isLoading.value,
-                          onPressed: controller.register,
+                          loading: _controller.isLoading.value,
+                          onPressed: () => _controller.register(
+                            name: _nameController.text,
+                            mobile: _mobileController.text,
+                            password: _passwordController.text,
+                            confirmPassword: _confirmPasswordController.text,
+                          ),
                           fullWidth: true,
                         )),
 
@@ -188,7 +192,7 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                         const SizedBox(width: 4),
                         GestureDetector(
-                          onTap: controller.navigateToLogin,
+                          onTap: _controller.navigateToLogin,
                           child: const Text(
                             'Login',
                             style: TextStyle(

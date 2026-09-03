@@ -15,12 +15,23 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  late final LoginController controller;
+  // TextEditingControllers live here — properly disposed in dispose()
+  final _mobileController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  late final LoginController _controller;
 
   @override
   void initState() {
     super.initState();
-    controller = Get.put(LoginController());
+    _controller = Get.put(LoginController());
+  }
+
+  @override
+  void dispose() {
+    _mobileController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,7 +59,6 @@ class _LoginViewState extends State<LoginView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // App logo or illustration
                     Center(
                       child: CircleAvatar(
                         radius: 38,
@@ -79,29 +89,26 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(height: 28),
 
-                    /// MOBILE NUMBER
                     CustomTextField(
-                      controller: controller.mobileController,
+                      controller: _mobileController,
                       hintText: 'Mobile Number',
                       keyboardType: TextInputType.phone,
                     ),
-
                     const SizedBox(height: 16),
-
-                    /// PASSWORD
                     CustomTextField(
-                      controller: controller.passwordController,
+                      controller: _passwordController,
                       hintText: 'Password',
                       obscureText: true,
                     ),
-
                     const SizedBox(height: 28),
 
-                    /// LOGIN BUTTON
                     Obx(() => CustomButton(
                           label: 'Continue',
-                          loading: controller.isLoading.value,
-                          onPressed: controller.login,
+                          loading: _controller.isLoading.value,
+                          onPressed: () => _controller.login(
+                            _mobileController.text,
+                            _passwordController.text,
+                          ),
                           fullWidth: true,
                         )),
 
@@ -115,9 +122,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         const SizedBox(width: 4),
                         GestureDetector(
-                          onTap: () {
-                            Get.toNamed(RoutesName.register);
-                          },
+                          onTap: () => Get.toNamed(RoutesName.register),
                           child: const Text(
                             'Sign Up',
                             style: TextStyle(
@@ -130,8 +135,6 @@ class _LoginViewState extends State<LoginView> {
                     ),
 
                     const SizedBox(height: 20),
-
-                    /// LEGAL LINKS
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: RichText(
