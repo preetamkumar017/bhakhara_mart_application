@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/order_history_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
@@ -580,8 +581,12 @@ class OrderDetailView extends StatelessWidget {
   }
 
   Widget _buildInvoiceDownloadButton(OrderDetailModel order) {
+    final status = order.deliveryStatus.toUpperCase();
+    final bool canCancel = status == 'PLACED';
+
     return Column(
       children: [
+        /// Reorder Button
         SizedBox(
           width: double.infinity,
           height: 48,
@@ -604,14 +609,23 @@ class OrderDetailView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 10),
+
+        /// Download Tax Invoice PDF Button
         SizedBox(
           width: double.infinity,
           height: 48,
           child: OutlinedButton.icon(
-            onPressed: () {
-              Fluttertoast.showToast(
-                msg: "Invoice token: ${order.invoiceToken ?? order.orderNo}\nDownloading PDF invoice...",
-              );
+            onPressed: () async {
+              final url = Uri.parse(ApiEndpoints.orderInvoicePdf(int.parse(order.id)));
+              try {
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  Fluttertoast.showToast(msg: "Invoice URL: $url");
+                }
+              } catch (_) {
+                Fluttertoast.showToast(msg: "Could not download invoice PDF");
+              }
             },
             icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
             label: const Text(
@@ -624,7 +638,92 @@ class OrderDetailView extends StatelessWidget {
             ),
           ),
         ),
+
+        /// Cancel Order Button (Shown if order is still PLACED)
+        if (canCancel) ...[
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: TextButton.icon(
+              onPressed: () => _showCancelOrderBottomSheet(order),
+              icon: const Icon(Icons.cancel_outlined, color: AppColors.error, size: 18),
+              label: const Text(
+                'Cancel This Order',
+                style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.error.withValues(alpha: 0.08),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ),
+        ],
       ],
+    );
+  }
+
+  void _showCancelOrderBottomSheet(OrderDetailModel order) {
+    final reasons = [
+      'Ordered by mistake',
+      'Need to change delivery address / slot',
+      'Forgot to add more grocery items',
+      'Found better deal elsewhere',
+      'Delayed expected delivery',
+      'Other reasons',
+    ];
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Cancel Order #${100}',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Please tell us the reason for cancellation:',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            ...reasons.map((reason) {
+              return ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.radio_button_unchecked, size: 18, color: AppColors.primary),
+                title: Text(reason, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  Get.back();
+                  controller.cancelOrder(int.parse(order.id), reason);
+                },
+              );
+            }),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Get.back(),
+                child: const Text('Keep My Order'),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }

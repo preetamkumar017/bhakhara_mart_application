@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../core/themes/app_colors.dart';
 import '../controller/search_controller.dart';
 import '../../product/view/product_card.dart';
 
 class SearchView extends StatefulWidget {
-  SearchView({super.key});
+  const SearchView({super.key});
 
   @override
   State<SearchView> createState() => _SearchViewState();
@@ -15,52 +16,44 @@ class _SearchViewState extends State<SearchView> {
   final TextEditingController textController = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      FocusScope.of(context).requestFocus(FocusNode());
-    });
-  }
-
-  @override
   void dispose() {
     textController.dispose();
     super.dispose();
   }
 
-  // Trigger explicit search
-  void _doSearch() {
-    final query = textController.text.trim();
-    if (query.isNotEmpty) {
-      controller.performSearch(query);
+  void _doSearch(String query) {
+    final q = query.trim();
+    if (q.isNotEmpty) {
+      textController.text = q;
+      controller.performSearch(q);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Search Products'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Get.back(),
-        ),
+        title: const Text('Search Groceries & Staples'),
+        elevation: 0,
       ),
       body: Column(
         children: [
           // Search Input with Button
-          Padding(
+          Container(
             padding: const EdgeInsets.all(16),
+            color: Colors.white,
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: textController,
                     onChanged: controller.onSearchChanged,
-                    onSubmitted: (_) => _doSearch(),
+                    onSubmitted: (val) => _doSearch(val),
+                    autofocus: false,
                     decoration: InputDecoration(
-                      hintText: 'Search for products...',
-                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Search atta, dal, oil, milk, tea...',
+                      prefixIcon: const Icon(Icons.search, color: AppColors.primary),
                       suffixIcon: Obx(() {
                         if (controller.query.value.isNotEmpty) {
                           return IconButton(
@@ -75,22 +68,25 @@ class _SearchViewState extends State<SearchView> {
                       }),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       filled: true,
-                      fillColor: Colors.grey[100],
+                      fillColor: AppColors.background,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: _doSearch,
+                  onPressed: () => _doSearch(textController.text),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text('Search'),
+                  child: const Text('Search', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -99,26 +95,14 @@ class _SearchViewState extends State<SearchView> {
           // Error Message
           Obx(() {
             if (controller.errorMessage.value.isNotEmpty) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red[700]),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          controller.errorMessage.value,
-                          style: TextStyle(color: Colors.red[700]),
-                        ),
-                      ),
-                    ],
-                  ),
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.red[50],
+                child: Text(
+                  controller.errorMessage.value,
+                  style: TextStyle(color: Colors.red[700]),
+                  textAlign: TextAlign.center,
                 ),
               );
             }
@@ -128,22 +112,21 @@ class _SearchViewState extends State<SearchView> {
           // Content Area
           Expanded(
             child: Obx(() {
-              // Loading state
               if (controller.isLoading.value || controller.isSearching.value) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              // Empty query - show empty state
-              if (controller.query.value.isEmpty) {
-                return _buildEmptyState();
+              // Show search discovery (trending & recent) when query is empty
+              if (controller.query.value.isEmpty && controller.searchResults.isEmpty) {
+                return _buildSearchDiscovery();
               }
 
-              // Show suggestions (for 1-2 chars or until explicit search)
+              // Show suggestions while typing
               if (controller.suggestions.isNotEmpty && controller.searchResults.isEmpty) {
                 return _buildSuggestionsList();
               }
 
-              // Show search results (after explicit search)
+              // No results
               if (controller.searchResults.isEmpty) {
                 return Center(
                   child: Column(
@@ -151,10 +134,10 @@ class _SearchViewState extends State<SearchView> {
                     children: [
                       Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
                       const SizedBox(height: 16),
-                      const Text('No products found'),
+                      const Text('No products found', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 8),
                       Text(
-                        'Try different keywords',
+                        'Try searching for Atta, Milk, Dal, or Ghee',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                     ],
@@ -170,27 +153,77 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
+  Widget _buildSearchDiscovery() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.search, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            'Search for products',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
+          /// Trending Groceries
+          if (controller.trendingSearches.isNotEmpty) ...[
+            const Row(
+              children: [
+                Icon(Icons.local_fire_department, size: 18, color: Colors.orange),
+                SizedBox(width: 6),
+                Text(
+                  'Trending Searches',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Type at least 3 characters and tap Search',
-            style: TextStyle(
-              color: Colors.grey[500],
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.trendingSearches.map((term) {
+                return ActionChip(
+                  avatar: const Icon(Icons.search, size: 14, color: AppColors.primary),
+                  label: Text(term, style: const TextStyle(fontSize: 12)),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  onPressed: () => _doSearch(term),
+                );
+              }).toList(),
             ),
-          ),
+            const SizedBox(height: 24),
+          ],
+
+          /// Recent Searches
+          if (controller.recentSearches.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.history, size: 18, color: AppColors.textSecondary),
+                    SizedBox(width: 6),
+                    Text(
+                      'Recent Searches',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    ),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () => controller.clearRecentSearches(),
+                  child: const Text('Clear All', style: TextStyle(fontSize: 12, color: AppColors.error)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: controller.recentSearches.map((term) {
+                return Chip(
+                  label: Text(term, style: const TextStyle(fontSize: 12)),
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  deleteIcon: const Icon(Icons.close, size: 14, color: Colors.grey),
+                  onDeleted: () => controller.removeRecentSearch(term),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );
@@ -205,7 +238,7 @@ class _SearchViewState extends State<SearchView> {
           child: Text(
             'Suggestions (${controller.suggestions.length})',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
               color: Colors.grey,
             ),
@@ -217,12 +250,11 @@ class _SearchViewState extends State<SearchView> {
             itemBuilder: (context, index) {
               final item = controller.suggestions[index];
               return ListTile(
-                leading: const Icon(Icons.search),
+                leading: const Icon(Icons.search, color: AppColors.primary),
                 title: Text(item['product_name'] ?? ''),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
                 onTap: () {
-                  textController.text = item['product_name'] ?? '';
-                  controller.useSuggestion(item['product_name'] ?? '');
+                  _doSearch(item['product_name'] ?? '');
                 },
               );
             },
@@ -239,7 +271,7 @@ class _SearchViewState extends State<SearchView> {
         crossAxisCount: 2,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.65,
+        childAspectRatio: 0.68,
       ),
       itemCount: controller.searchResults.length,
       itemBuilder: (_, index) {
@@ -248,4 +280,3 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 }
-

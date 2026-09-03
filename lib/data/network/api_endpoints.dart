@@ -22,6 +22,7 @@ class ApiEndpoints {
 
   // Search & Suggestions
   static const String productsSuggest = "${baseUrl}products/suggest";
+  static const String trendingSearches = "${baseUrl}products/trending-searches";
   static String productsSearch(String query, int page, int limit) =>
       "${baseUrl}products/search?q=$query&page=$page&limit=$limit";
 
@@ -39,6 +40,7 @@ class ApiEndpoints {
   static const String orderPlace = "${baseUrl}order/place";
   static const String orders = "${baseUrl}orders";
   static String orderDetail(int orderId) => "${baseUrl}orders/$orderId";
+  static String orderCancel(int orderId) => "${baseUrl}order/$orderId/cancel";
 
   // Order Tracking & Invoices
   static String orderStatus(int orderId) => "${baseUrl}order/$orderId/status";

@@ -107,6 +107,31 @@ class OrderController extends GetxController {
     }
   }
 
+  /// Cancel an order with a reason
+  Future<bool> cancelOrder(int orderId, String reason) async {
+    try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      final success = await _orderRepo.cancelOrder(orderId, reason);
+      if (Get.isDialogOpen == true) Get.back();
+
+      if (success) {
+        SnackBarUtils.showSuccess('Order #$orderId has been cancelled');
+        await fetchOrderDetail(orderId);
+        await fetchOrders();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      if (Get.isDialogOpen == true) Get.back();
+      _handleError(e, 'Failed to cancel order');
+      return false;
+    }
+  }
+
   /// Handle errors and show user-friendly messages
   void _handleError(dynamic error, String defaultMessage) {
     String errorMessage;

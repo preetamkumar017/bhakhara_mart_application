@@ -93,4 +93,17 @@ class OrderRepo {
       rethrow;
     }
   }
+
+  /// Cancel order
+  Future<bool> cancelOrder(int orderId, String reason) async {
+    try {
+      final response = await _api.postApi(
+        ApiEndpoints.orderCancel(orderId),
+        {'reason': reason},
+      );
+      return response['status'] == true;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
