@@ -1,6 +1,7 @@
 import '../../../data/network/network_api_services.dart';
 import '../../../data/models/cart_model.dart';
 import '../../../data/models/coupon_model.dart';
+import '../../../data/models/product_model.dart';
 import '../../../data/network/api_endpoints.dart';
 
 class CartRepo {
@@ -52,5 +53,15 @@ class CartRepo {
       },
     );
     return res;
+  }
+
+  Future<List<ProductModel>> fetchCartRecommendations() async {
+    try {
+      final res = await _api.getApi(ApiEndpoints.cartRecommendations);
+      final List list = res['data'] ?? [];
+      return list.map((e) => ProductModel.fromJson(e)).toList();
+    } catch (e) {
+      return [];
+    }
   }
 }

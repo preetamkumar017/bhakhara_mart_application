@@ -270,6 +270,12 @@ class ProfileView extends StatelessWidget {
         onTap: () => Get.toNamed(RoutesName.wishlist),
       ),
       _ProfileOption(
+        icon: Icons.stars_rounded,
+        title: 'Refer & Earn • Bhakhra Coins',
+        subtitle: 'Earn ₹50 on referring friends',
+        onTap: () => Get.toNamed(RoutesName.rewards),
+      ),
+      _ProfileOption(
         icon: Icons.location_on_outlined,
         title: 'Address Management',
         subtitle: 'Manage delivery addresses',

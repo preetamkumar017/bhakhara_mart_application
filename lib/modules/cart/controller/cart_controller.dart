@@ -18,12 +18,14 @@ class CartController extends GetxController {
   final discountAmount = 0.0.obs;
   final appliedCoupon = Rxn<CouponModel>();
   final availableCoupons = <CouponModel>[].obs;
+  final recommendations = <ProductModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     loadCart();
     loadAvailableCoupons();
+    loadRecommendations();
   }
 
   Future<void> loadCart() async {
@@ -34,6 +36,7 @@ class CartController extends GetxController {
       if (appliedCouponCode.value.isNotEmpty) {
         await _revalidateAppliedCoupon();
       }
+      loadRecommendations();
     } catch (e) {
       // ignore
     } finally {
@@ -41,6 +44,13 @@ class CartController extends GetxController {
     }
 
     _refreshHomeController();
+  }
+
+  Future<void> loadRecommendations() async {
+    try {
+      final recs = await _repo.fetchCartRecommendations();
+      recommendations.assignAll(recs);
+    } catch (_) {}
   }
 
   Future<void> loadAvailableCoupons() async {

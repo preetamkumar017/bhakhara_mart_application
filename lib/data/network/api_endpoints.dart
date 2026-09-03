@@ -61,6 +61,13 @@ class ApiEndpoints {
   static const String productAddReview = "${baseUrl}products/review";
   static const String productNotifyMe = "${baseUrl}products/notify-me";
 
+  // Promotional Banners & Recommendations
+  static const String banners = "${baseUrl}banners";
+  static const String cartRecommendations = "${baseUrl}cart/recommendations";
+
+  // Customer Loyalty Rewards & Referrals
+  static const String customerRewards = "${baseUrl}customer/rewards";
+
   // Address Management
   static const String addresses = "${baseUrl}addresses";
   static const String addressAdd = "${baseUrl}addresses/add";

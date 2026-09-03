@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/cart_model.dart';
 import 'package:bhakharamart/data/models/coupon_model.dart';
@@ -43,15 +44,16 @@ class _CartViewState extends State<CartView> {
 
         return Column(
           children: [
-            /// Cart Items List
+            /// Cart Items List & Cross-Sell Recommendations
             Expanded(
-              child: ListView.builder(
+              child: ListView(
                 padding: const EdgeInsets.all(16),
-                itemCount: controller.items.length,
-                itemBuilder: (_, index) {
-                  final item = controller.items[index];
-                  return _buildCartItem(item, controller, index);
-                },
+                children: [
+                  ...controller.items.asMap().entries.map((entry) {
+                    return _buildCartItem(entry.value, controller, entry.key);
+                  }),
+                  _buildRecommendationsSection(controller),
+                ],
               ),
             ),
 
@@ -815,6 +817,118 @@ class _CartViewState extends State<CartView> {
           ),
         ) ??
         false;
+  }
+
+  Widget _buildRecommendationsSection(CartController controller) {
+    return Obx(() {
+      if (controller.recommendations.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Row(
+                children: [
+                  Icon(Icons.auto_awesome, size: 16, color: Colors.amber),
+                  SizedBox(width: 6),
+                  Text(
+                    'Frequently Bought Together',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: 165,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                scrollDirection: Axis.horizontal,
+                itemCount: controller.recommendations.length,
+                itemBuilder: (_, index) {
+                  final p = controller.recommendations[index];
+                  return Container(
+                    width: 125,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: p.image.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: '${ApiEndpoints.domain}/uploads/products/${p.image}',
+                                    fit: BoxFit.contain,
+                                    errorWidget: (_, __, ___) => const Icon(Icons.inventory_2_outlined, size: 30),
+                                  )
+                                : const Icon(Icons.inventory_2_outlined, size: 30),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          p.productName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          p.unit,
+                          style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '₹${p.salePrice.toStringAsFixed(0)}',
+                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                controller.addToCart(p);
+                                Fluttertoast.showToast(msg: "Added ${p.productName} to Cart");
+                              },
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: AppColors.primary),
+                                ),
+                                child: const Text(
+                                  '+ ADD',
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   void _showClearCartDialog(CartController controller) {
