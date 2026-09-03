@@ -4,12 +4,24 @@ import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
 import '../../../res/components/custom_textfield.dart';
 import '../../../res/routes/routes_name.dart';
+import '../../../core/themes/app_colors.dart';
 import '../controller/register_controller.dart';
 
-class RegisterView extends StatelessWidget {
-  RegisterView({super.key});
+class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
 
-  final RegisterController controller = Get.put(RegisterController());
+  @override
+  State<RegisterView> createState() => _RegisterViewState();
+}
+
+class _RegisterViewState extends State<RegisterView> {
+  late final RegisterController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(RegisterController());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +39,7 @@ class RegisterView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -52,11 +64,11 @@ class RegisterView extends StatelessWidget {
                     Center(
                       child: CircleAvatar(
                         radius: 38,
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(.1),
-                        child: Icon(
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                        child: const Icon(
                           Icons.person_add_alt_1_outlined,
                           size: 48,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -66,7 +78,7 @@ class RegisterView extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary,
                           ),
                     ),
                     const SizedBox(height: 6),
@@ -164,8 +176,7 @@ class RegisterView extends StatelessWidget {
                           loading: controller.isLoading.value,
                           onPressed: controller.register,
                           fullWidth: true,
-                        ),
-                    ),
+                        )),
 
                     const SizedBox(height: 16),
                     Row(
@@ -178,10 +189,10 @@ class RegisterView extends StatelessWidget {
                         const SizedBox(width: 4),
                         GestureDetector(
                           onTap: controller.navigateToLogin,
-                          child: Text(
+                          child: const Text(
                             'Login',
                             style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                              color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -198,4 +209,3 @@ class RegisterView extends StatelessWidget {
     );
   }
 }
-

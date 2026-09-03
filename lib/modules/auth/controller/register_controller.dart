@@ -112,10 +112,7 @@ class RegisterController extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
-    mobileController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    // TextEditingControllers are disposed by the StatefulWidget's lifecycle
     super.onClose();
   }
 }

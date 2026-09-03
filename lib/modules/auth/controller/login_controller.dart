@@ -78,8 +78,7 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    mobileController.dispose();
-    passwordController.dispose();
+    // TextEditingControllers are disposed by the StatefulWidget's lifecycle
     super.onClose();
   }
 }

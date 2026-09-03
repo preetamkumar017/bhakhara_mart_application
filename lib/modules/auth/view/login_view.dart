@@ -4,12 +4,24 @@ import 'package:get/get.dart';
 import '../../../res/components/custom_button.dart';
 import '../../../res/components/custom_textfield.dart';
 import '../../../res/routes/routes_name.dart';
+import '../../../core/themes/app_colors.dart';
 import '../controller/login_controller.dart';
 
-class LoginView extends StatelessWidget {
-  LoginView({super.key});
+class LoginView extends StatefulWidget {
+  const LoginView({super.key});
 
-  final LoginController controller = Get.put(LoginController());
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  late final LoginController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(LoginController());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +39,7 @@ class LoginView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 16,
                       offset: const Offset(0, 8),
                     ),
@@ -40,11 +52,11 @@ class LoginView extends StatelessWidget {
                     Center(
                       child: CircleAvatar(
                         radius: 38,
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(.1),
-                        child: Icon(
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                        child: const Icon(
                           Icons.lock_outline_rounded,
                           size: 48,
-                          color: Theme.of(context).primaryColor,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -54,7 +66,7 @@ class LoginView extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: Theme.of(context).primaryColor,
+                            color: AppColors.primary,
                           ),
                     ),
                     const SizedBox(height: 6),
@@ -83,24 +95,7 @@ class LoginView extends StatelessWidget {
                       obscureText: true,
                     ),
 
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: GestureDetector(
-                        onTap: () {
-                          // Add logic for forgot password (if available)
-                        },
-                        child: Text(
-                          'Forgot Password?',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 28),
 
                     /// LOGIN BUTTON
                     Obx(() => CustomButton(
@@ -108,9 +103,7 @@ class LoginView extends StatelessWidget {
                           loading: controller.isLoading.value,
                           onPressed: controller.login,
                           fullWidth: true,
-                          // RESOLVED: Remove unsupported style param. Add borderRadius inside button if needed.
-                        ),
-                    ),
+                        )),
 
                     const SizedBox(height: 16),
                     Row(
@@ -125,10 +118,10 @@ class LoginView extends StatelessWidget {
                           onTap: () {
                             Get.toNamed(RoutesName.register);
                           },
-                          child: Text(
+                          child: const Text(
                             'Sign Up',
                             style: TextStyle(
-                              color: Theme.of(context).primaryColor,
+                              color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
