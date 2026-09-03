@@ -73,6 +73,14 @@ class ApiEndpoints {
   // Customer Loyalty Rewards & Referrals
   static const String customerRewards = "${baseUrl}customer/rewards";
 
+  // Recurring Subscriptions (Bhakhra Daily)
+  static const String subscriptions = "${baseUrl}subscriptions";
+  static const String subscriptionCreate = "${baseUrl}subscriptions/create";
+  static String subscriptionToggle(int id) => "${baseUrl}subscriptions/$id/toggle-pause";
+
+  // Post-Delivery Experience Rating
+  static String orderRate(int id) => "${baseUrl}order/$id/rate-delivery";
+
   // Address Management
   static const String addresses = "${baseUrl}addresses";
   static const String addressAdd = "${baseUrl}addresses/add";

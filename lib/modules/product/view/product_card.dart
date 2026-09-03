@@ -136,6 +136,24 @@ class ProductCard extends StatelessWidget {
               right: 8,
               child: _buildWishlistButton(),
             ),
+
+            /// Low Stock Urgency Badge
+            if (product.isInStock && product.stockQty > 0 && product.stockQty <= 5)
+              Positioned(
+                top: 110,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade700,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '⚡ Only ${product.stockQty.toInt()} left!',
+                    style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

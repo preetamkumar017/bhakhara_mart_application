@@ -16,5 +16,6 @@ class RoutesName {
   static const String helpSupport = '/help-support';
   static const String wishlist = '/wishlist';
   static const String rewards = '/rewards';
+  static const String subscriptions = '/subscriptions';
   static String orderDetail(int orderId) => '/orders/$orderId';
 }

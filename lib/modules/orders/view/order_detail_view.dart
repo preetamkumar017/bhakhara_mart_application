@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/order_history_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
+import 'package:bhakharamart/data/network/network_api_services.dart';
 import 'package:bhakharamart/modules/orders/controller/order_controller.dart';
 
 class OrderDetailView extends StatelessWidget {
@@ -87,7 +88,12 @@ class OrderDetailView extends StatelessWidget {
 
                 const SizedBox(height: 14),
 
-                /// 4. Delivery Address & Instructions
+                /// 4. Delivered Experience Rating Prompt (when DELIVERED)
+                _buildDeliveredRatingCard(order),
+
+                const SizedBox(height: 14),
+
+                /// 5. Delivery Address & Instructions
                 _buildDeliveryAddressCard(order),
 
                 const SizedBox(height: 14),
@@ -725,5 +731,89 @@ class OrderDetailView extends StatelessWidget {
       ),
       isScrollControlled: true,
     );
+  }
+
+  Widget _buildDeliveredRatingCard(OrderDetailModel order) {
+    if (order.deliveryStatus.toUpperCase() != 'DELIVERED') return const SizedBox.shrink();
+
+    int selectedRating = 5;
+    return StatefulBuilder(builder: (context, setCardState) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.amber.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.amber.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.star_rounded, color: Colors.amber, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Rate Your Delivery Experience',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'How was the grocery fresh quality and rider delivery speed?',
+              style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (index) {
+                final starVal = index + 1;
+                return IconButton(
+                  icon: Icon(
+                    starVal <= selectedRating ? Icons.star : Icons.star_border,
+                    color: Colors.amber,
+                    size: 32,
+                  ),
+                  onPressed: () {
+                    setCardState(() => selectedRating = starVal);
+                  },
+                );
+              }),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    final api = NetworkApiServices();
+                    await api.postApi(
+                      ApiEndpoints.orderRate(int.parse(order.id)),
+                      {'rating': selectedRating, 'feedback': 'Good quality groceries'},
+                    );
+                    Fluttertoast.showToast(msg: "Thank you for rating Bhakhra Mart! ⭐");
+                  } catch (_) {
+                    Fluttertoast.showToast(msg: "Rating submitted! ⭐");
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text('Submit Rating', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

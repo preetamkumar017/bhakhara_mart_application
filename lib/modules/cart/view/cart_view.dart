@@ -44,6 +44,9 @@ class _CartViewState extends State<CartView> {
 
         return Column(
           children: [
+            /// Free Delivery Progress Bar
+            _buildFreeDeliveryProgressBar(controller),
+
             /// Cart Items List & Cross-Sell Recommendations
             Expanded(
               child: ListView(
@@ -923,6 +926,67 @@ class _CartViewState extends State<CartView> {
                     ),
                   );
                 },
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildFreeDeliveryProgressBar(CartController controller) {
+    return Obx(() {
+      const double threshold = 499.0;
+      final double subtotal = controller.totalAmount;
+      final double remaining = (threshold - subtotal).clamp(0.0, threshold);
+      final double progress = (subtotal / threshold).clamp(0.0, 1.0);
+      final bool isUnlocked = subtotal >= threshold;
+
+      return Container(
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: isUnlocked ? const Color(0xFFE8F5E9) : const Color(0xFFFFF8E1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isUnlocked ? AppColors.success.withValues(alpha: 0.3) : Colors.amber.shade300,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isUnlocked ? Icons.check_circle : Icons.local_shipping_outlined,
+                  size: 16,
+                  color: isUnlocked ? AppColors.success : Colors.amber.shade800,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isUnlocked
+                        ? "🎉 Yay! You've unlocked FREE Express Delivery!"
+                        : "Add ₹${remaining.toStringAsFixed(0)} more for FREE Delivery 🚚",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isUnlocked ? AppColors.success : Colors.amber.shade900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: Colors.grey.shade300,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isUnlocked ? AppColors.success : AppColors.primary,
+                ),
               ),
             ),
           ],

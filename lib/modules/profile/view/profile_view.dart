@@ -276,6 +276,12 @@ class ProfileView extends StatelessWidget {
         onTap: () => Get.toNamed(RoutesName.rewards),
       ),
       _ProfileOption(
+        icon: Icons.local_drink_outlined,
+        title: 'Bhakhra Daily • Subscriptions',
+        subtitle: 'Daily milk, bread & eggs morning delivery',
+        onTap: () => Get.toNamed(RoutesName.subscriptions),
+      ),
+      _ProfileOption(
         icon: Icons.location_on_outlined,
         title: 'Address Management',
         subtitle: 'Manage delivery addresses',
