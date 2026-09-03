@@ -14,5 +14,6 @@ class RoutesName {
   static const String privacyPolicy = '/privacy-policy';
   static const String termsConditions = '/terms-conditions';
   static const String helpSupport = '/help-support';
+  static const String wishlist = '/wishlist';
   static String orderDetail(int orderId) => '/orders/$orderId';
 }

@@ -1,3 +1,5 @@
+import 'product_variant_model.dart';
+
 class ProductModel {
   final String id;
   final String categoryId;
@@ -11,6 +13,10 @@ class ProductModel {
   final String image;
   final double stockQty;
   final bool isInStock;
+  final bool isFavorite;
+  final double averageRating;
+  final int reviewCount;
+  final List<ProductVariantModel> variants;
 
   ProductModel({
     required this.id,
@@ -25,6 +31,10 @@ class ProductModel {
     required this.image,
     this.stockQty = 0.0,
     this.isInStock = true,
+    this.isFavorite = false,
+    this.averageRating = 4.8,
+    this.reviewCount = 12,
+    this.variants = const [],
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +42,13 @@ class ProductModel {
     final inStock = json['is_in_stock'] != null
         ? (json['is_in_stock'] == true || json['is_in_stock'].toString() == '1')
         : (stock > 0 || json['stock_qty'] == null);
+
+    List<ProductVariantModel> varList = [];
+    if (json['variants'] != null && json['variants'] is List) {
+      varList = (json['variants'] as List)
+          .map((v) => ProductVariantModel.fromJson(v))
+          .toList();
+    }
 
     return ProductModel(
       id: json['id'].toString(),
@@ -46,6 +63,10 @@ class ProductModel {
       image: json['image']?.toString() ?? '',
       stockQty: stock,
       isInStock: inStock,
+      isFavorite: json['is_favorite'] == true || json['is_favorite'].toString() == '1',
+      averageRating: double.tryParse(json['average_rating']?.toString() ?? '4.8') ?? 4.8,
+      reviewCount: int.tryParse(json['review_count']?.toString() ?? '12') ?? 12,
+      variants: varList,
     );
   }
 
@@ -62,6 +83,10 @@ class ProductModel {
     String? image,
     double? stockQty,
     bool? isInStock,
+    bool? isFavorite,
+    double? averageRating,
+    int? reviewCount,
+    List<ProductVariantModel>? variants,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -76,6 +101,10 @@ class ProductModel {
       image: image ?? this.image,
       stockQty: stockQty ?? this.stockQty,
       isInStock: isInStock ?? this.isInStock,
+      isFavorite: isFavorite ?? this.isFavorite,
+      averageRating: averageRating ?? this.averageRating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      variants: variants ?? this.variants,
     );
   }
 }

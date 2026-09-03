@@ -17,6 +17,7 @@ import '../../modules/orders/view/order_detail_view.dart';
 import '../../modules/legal/view/privacy_policy_view.dart';
 import '../../modules/legal/view/terms_conditions_view.dart';
 import '../../modules/legal/view/help_support_view.dart';
+import '../../modules/wishlist/view/wishlist_view.dart';
 
 class AppRoutes {
   static List<GetPage<dynamic>> appRoutes() => [
@@ -104,6 +105,11 @@ class AppRoutes {
     GetPage(
       name: RoutesName.helpSupport,
       page: () => const HelpSupportView(),
+      transition: Transition.rightToLeftWithFade,
+    ),
+    GetPage(
+      name: RoutesName.wishlist,
+      page: () => WishlistView(),
       transition: Transition.rightToLeftWithFade,
     ),
   ];

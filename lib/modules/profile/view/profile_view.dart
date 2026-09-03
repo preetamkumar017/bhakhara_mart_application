@@ -264,6 +264,12 @@ class ProfileView extends StatelessWidget {
         onTap: () => Get.toNamed('/orders'),
       ),
       _ProfileOption(
+        icon: Icons.favorite_outline,
+        title: 'My Favorites & Staples',
+        subtitle: 'Quickly re-order saved groceries',
+        onTap: () => Get.toNamed(RoutesName.wishlist),
+      ),
+      _ProfileOption(
         icon: Icons.location_on_outlined,
         title: 'Address Management',
         subtitle: 'Manage delivery addresses',

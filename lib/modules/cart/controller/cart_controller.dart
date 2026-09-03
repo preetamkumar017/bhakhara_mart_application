@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../repo/cart_repo.dart';
 import '../../../data/models/cart_model.dart';
 import '../../../data/models/coupon_model.dart';
+import '../../../data/models/product_model.dart';
 import '../../../modules/home/controller/home_controller.dart';
 
 class CartController extends GetxController {
@@ -130,6 +131,14 @@ class CartController extends GetxController {
   Future<void> addItem(int productId) async {
     await _repo.addToCart(productId, 1);
     await loadCart();
+  }
+
+  Future<void> addToCart(ProductModel product, {int qty = 1}) async {
+    final pid = int.tryParse(product.id) ?? 0;
+    if (pid > 0) {
+      await _repo.addToCart(pid, qty);
+      await loadCart();
+    }
   }
 
   Future<void> increaseQty(CartItemModel item) async {

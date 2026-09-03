@@ -7,6 +7,7 @@ import 'package:bhakharamart/data/models/cart_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
 import 'package:bhakharamart/modules/home/controller/home_controller.dart';
 import 'package:bhakharamart/modules/cart/controller/cart_controller.dart';
+import 'package:bhakharamart/modules/wishlist/controller/wishlist_controller.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductModel product;
@@ -350,22 +351,29 @@ class ProductCard extends StatelessWidget {
   }
 
   Widget _buildWishlistButton() {
-    return Material(
-      color: Colors.white.withOpacity(0.9),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
+    final wishlistController = Get.isRegistered<WishlistController>()
+        ? Get.find<WishlistController>()
+        : Get.put(WishlistController());
+
+    return Obx(() {
+      final isFav = wishlistController.isFavorite(product.id) || product.isFavorite;
+      return Material(
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(20),
-        onTap: () {},
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          child: Icon(
-            Icons.favorite_border_outlined,
-            size: 18,
-            color: AppColors.textSecondary,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => wishlistController.toggleWishlist(product),
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            child: Icon(
+              isFav ? Icons.favorite : Icons.favorite_border_outlined,
+              size: 18,
+              color: isFav ? AppColors.error : AppColors.textSecondary,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildPriceAndActionRow(

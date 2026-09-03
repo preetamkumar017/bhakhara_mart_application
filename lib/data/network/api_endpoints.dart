@@ -52,6 +52,15 @@ class ApiEndpoints {
   // Push Notifications
   static const String fcmToken = "${baseUrl}customer/fcm-token";
 
+  // Wishlist & Favorites
+  static const String wishlist = "${baseUrl}wishlist";
+  static const String wishlistToggle = "${baseUrl}wishlist/toggle";
+
+  // Reviews & Restock Alerts
+  static String productReviews(int productId) => "${baseUrl}products/$productId/reviews";
+  static const String productAddReview = "${baseUrl}products/review";
+  static const String productNotifyMe = "${baseUrl}products/notify-me";
+
   // Address Management
   static const String addresses = "${baseUrl}addresses";
   static const String addressAdd = "${baseUrl}addresses/add";
