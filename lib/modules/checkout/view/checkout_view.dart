@@ -56,8 +56,13 @@ class CheckoutView extends StatelessWidget {
                     const SizedBox(height: 16),
                     CustomTextField(
                       controller: controller.landmarkController,
-                      hintText: 'Landmark (optional)',
+                      hintText: 'Landmark or Special Instructions (e.g. Near park / Call before delivery)',
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // Delivery Slot Selector
+                    _buildDeliverySlotSection(context),
                     
                     const SizedBox(height: 16),
                     
@@ -194,9 +199,119 @@ class CheckoutView extends StatelessWidget {
             controller.selectAddress(val);
           }
         },
-        decoration: const InputDecoration(
-          border: OutlineInputBorder(),
-          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeliverySlotSection(BuildContext context) {
+    final slots = [
+      {
+        'id': 'EXPRESS_30_MIN',
+        'title': '⚡ Express Delivery',
+        'subtitle': 'Delivered in 30-45 mins',
+        'badge': 'FASTEST',
+      },
+      {
+        'id': 'TODAY_EVENING_6_8',
+        'title': '🌇 Today Evening',
+        'subtitle': 'Between 6:00 PM - 8:00 PM',
+        'badge': 'POPULAR',
+      },
+      {
+        'id': 'TOMORROW_MORNING_7_9',
+        'title': '🌅 Tomorrow Morning',
+        'subtitle': 'Between 7:00 AM - 9:00 AM',
+        'badge': 'FRESH MILK',
+      },
+    ];
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.schedule, color: AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Text('Select Delivery Slot', style: Theme.of(context).textTheme.titleMedium),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Obx(() => Column(
+                  children: slots.map((slot) {
+                    final isSelected = controller.selectedDeliverySlot.value == slot['id'];
+                    return InkWell(
+                      onTap: () => controller.selectedDeliverySlot.value = slot['id']!,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+                              color: isSelected ? AppColors.primary : Colors.grey,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    slot['title']!,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                      color: isSelected ? AppColors.primary : Colors.black,
+                                    ),
+                                  ),
+                                  Text(
+                                    slot['subtitle']!,
+                                    style: const TextStyle(fontSize: 11, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isSelected ? AppColors.primary : Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                slot['badge']!,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.grey.shade700,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                )),
+          ],
         ),
       ),
     );

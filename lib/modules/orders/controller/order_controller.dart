@@ -2,6 +2,9 @@ import 'package:bhakharamart/core/utils/snackbar.dart';
 import 'package:bhakharamart/data/app_exception.dart';
 import 'package:bhakharamart/data/models/order_history_model.dart';
 import 'package:bhakharamart/modules/orders/repo/order_repo.dart';
+import 'package:bhakharamart/modules/cart/controller/cart_controller.dart';
+import 'package:bhakharamart/modules/cart/repo/cart_repo.dart';
+import 'package:bhakharamart/res/routes/routes_name.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -56,6 +59,51 @@ class OrderController extends GetxController {
       return null;
     } finally {
       isLoadingDetail.value = false;
+    }
+  }
+
+  /// Reorder all items from a past order into active cart
+  Future<void> reorderOrder(int orderId) async {
+    try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      final detail = await _orderRepo.fetchOrderDetail(orderId);
+      if (Get.isDialogOpen == true) Get.back();
+
+      if (detail.items.isEmpty) {
+        SnackBarUtils.showError('Unable to fetch items from this order');
+        return;
+      }
+
+      final CartRepo cartRepo = CartRepo();
+      int addedCount = 0;
+
+      for (final item in detail.items) {
+        final pid = int.tryParse(item.productId.toString()) ?? 0;
+        final qty = int.tryParse(item.quantity.toString()) ?? 1;
+        if (pid > 0) {
+          try {
+            await cartRepo.addToCart(pid, qty > 0 ? qty : 1);
+            addedCount++;
+          } catch (_) {
+            // Continue adding remaining items
+          }
+        }
+      }
+
+      if (Get.isRegistered<CartController>()) {
+        final cartController = Get.find<CartController>();
+        await cartController.loadCart();
+      }
+
+      SnackBarUtils.showSuccess('Added $addedCount item(s) to your cart!');
+      Get.toNamed(RoutesName.cart);
+    } catch (e) {
+      if (Get.isDialogOpen == true) Get.back();
+      SnackBarUtils.showError('Failed to re-order: $e');
     }
   }
 

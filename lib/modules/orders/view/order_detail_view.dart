@@ -580,25 +580,51 @@ class OrderDetailView extends StatelessWidget {
   }
 
   Widget _buildInvoiceDownloadButton(OrderDetailModel order) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          Fluttertoast.showToast(
-            msg: "Invoice token: ${order.invoiceToken ?? order.orderNo}\nDownloading PDF invoice...",
-          );
-        },
-        icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
-        label: const Text(
-          'Download Tax Invoice PDF',
-          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              final orderId = int.tryParse(order.id.toString()) ?? 0;
+              if (orderId > 0) {
+                controller.reorderOrder(orderId);
+              }
+            },
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            label: const Text(
+              '🔁 Re-order All Items in 1-Click',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
         ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.primary),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: () {
+              Fluttertoast.showToast(
+                msg: "Invoice token: ${order.invoiceToken ?? order.orderNo}\nDownloading PDF invoice...",
+              );
+            },
+            icon: const Icon(Icons.picture_as_pdf, color: AppColors.primary),
+            label: const Text(
+              'Download Tax Invoice PDF',
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: AppColors.primary),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

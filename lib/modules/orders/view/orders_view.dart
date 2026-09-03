@@ -162,16 +162,32 @@ class OrdersView extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const Divider(height: 20),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      final orderId = int.tryParse(order.id.toString()) ?? 0;
+                      if (orderId > 0) {
+                        controller.reorderOrder(orderId);
+                      }
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Re-order', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  ),
                   TextButton.icon(
                     onPressed: () {
                       Get.toNamed('/orders/${order.id}');
                     },
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: const Text('View Details'),
+                    icon: const Icon(Icons.arrow_forward, size: 16),
+                    label: const Text('View Details', style: TextStyle(fontSize: 12)),
                   ),
                 ],
               ),

@@ -63,6 +63,7 @@ class CheckoutController extends GetxController {
   }
 
   final selectedInstruction = ''.obs;
+  final selectedDeliverySlot = 'EXPRESS_30_MIN'.obs;
 
   /// Place an order with the selected address
   /// 
@@ -100,6 +101,7 @@ class CheckoutController extends GetxController {
         selectedAddressId.value,
         couponCode: coupon.isNotEmpty ? coupon : null,
         deliveryInstructions: instructions.isNotEmpty ? instructions : null,
+        deliverySlot: selectedDeliverySlot.value,
       );
       
       if (order.isSuccess) {

@@ -6,11 +6,12 @@ import 'package:bhakharamart/data/network/network_api_services.dart';
 class OrderRepo {
   final _api = NetworkApiServices();
 
-  /// Place an order with the given address ID and optional coupon/instructions
+  /// Place an order with the given address ID and optional coupon/instructions/slot
   Future<OrderModel> placeOrder(
     int addressId, {
     String? couponCode,
     String? deliveryInstructions,
+    String? deliverySlot,
   }) async {
     try {
       final payload = <String, dynamic>{
@@ -23,6 +24,10 @@ class OrderRepo {
 
       if (deliveryInstructions != null && deliveryInstructions.trim().isNotEmpty) {
         payload['delivery_instructions'] = deliveryInstructions.trim();
+      }
+
+      if (deliverySlot != null && deliverySlot.trim().isNotEmpty) {
+        payload['delivery_slot'] = deliverySlot.trim();
       }
 
       final response = await _api.postApi(
