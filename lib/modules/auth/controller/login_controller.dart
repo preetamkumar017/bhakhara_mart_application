@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
+import '../../../data/app_exception.dart';
 import '../../../data/network/network_api_services.dart';
 import '../../../data/network/api_endpoints.dart';
 import '../../../data/network/secure_token_storage.dart';
@@ -63,7 +64,15 @@ class LoginController extends GetxController {
       }
     } catch (e) {
       isLoading.value = false;
-      SnackBarUtils.showError(e.toString());
+      String errorMsg = 'Invalid mobile number or password.';
+      if (e is ApiErrorException) {
+        errorMsg = e.errorMessage.isNotEmpty ? e.errorMessage : errorMsg;
+      } else if (e is InternetErrorException) {
+        errorMsg = 'No internet connection. Please check your network.';
+      } else {
+        errorMsg = e.toString().replaceAll('Exception:', '').replaceAll('API Error', '').trim();
+      }
+      SnackBarUtils.showError(errorMsg);
     }
   }
 

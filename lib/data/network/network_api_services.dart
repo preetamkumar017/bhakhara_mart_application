@@ -199,40 +199,70 @@ class NetworkApiServices extends BaseApiServices {
       responseBody = response.body;
     }
 
+    // Extract clean human-readable error message if JSON payload
+    String? jsonErrorMessage;
+    if (responseBody is Map<String, dynamic>) {
+      if (responseBody['message'] != null && responseBody['message'].toString().isNotEmpty) {
+        jsonErrorMessage = responseBody['message'].toString();
+      } else if (responseBody['errors'] != null) {
+        if (responseBody['errors'] is Map) {
+          final errMap = responseBody['errors'] as Map;
+          if (errMap.isNotEmpty) {
+            jsonErrorMessage = errMap.values.first.toString();
+          }
+        } else if (responseBody['errors'] is List && (responseBody['errors'] as List).isNotEmpty) {
+          jsonErrorMessage = (responseBody['errors'] as List).first.toString();
+        }
+      }
+    }
+
     switch (response.statusCode) {
       case 200:
       case 201:
         // Handle API-level status field (like {"status": false, "message": "..."})
         if (responseBody is Map<String, dynamic>) {
           if (responseBody['status'] == false) {
-            final message = responseBody['message'] ?? 'Request failed';
+            final message = jsonErrorMessage ?? 'Request failed';
             throw ApiErrorException(message, responseBody);
           }
         }
         return responseBody;
 
       case 400:
+      case 409:
+      case 422:
+        if (jsonErrorMessage != null) {
+          throw ApiErrorException(jsonErrorMessage, responseBody);
+        }
         throw BadRequestException(response.body);
 
       case 401:
-        // Token expired - try to refresh
+        // If login or register API returned 401 (e.g. invalid credentials), don't trigger refresh token loop!
+        final path = response.request?.url.path ?? '';
+        if (path.contains('customer/login') || path.contains('customer/register') || path.contains('rider/login')) {
+          throw ApiErrorException(jsonErrorMessage ?? 'Invalid mobile or password', responseBody);
+        }
         return await _handleUnauthorized(retryFn);
 
       case 403:
-        // Handle 403 with JSON error message
-        if (responseBody is Map<String, dynamic>) {
-          final message = responseBody['message'] ?? 'Access denied';
-          throw ApiErrorException(message, responseBody);
+        if (jsonErrorMessage != null) {
+          throw ApiErrorException(jsonErrorMessage, responseBody);
         }
         throw ForbiddenException(response.body);
 
       case 404:
+        if (jsonErrorMessage != null) {
+          throw ApiErrorException(jsonErrorMessage, responseBody);
+        }
         throw NotFoundException(response.body);
 
       case 500:
-        throw ServerException(response.body);
+        throw ServerException("Server temporarily unavailable. Please try again later.");
 
       default:
+        if (jsonErrorMessage != null) {
+          throw ApiErrorException(jsonErrorMessage, responseBody);
+        }
         throw FetchDataException(
           "Error occurred with status code ${response.statusCode}",
         );
