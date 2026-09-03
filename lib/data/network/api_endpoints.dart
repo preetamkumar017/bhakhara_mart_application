@@ -8,6 +8,9 @@ class ApiEndpoints {
   static const String refreshToken = "${baseUrl}customer/refresh";
   static const String logout = "${baseUrl}customer/logout";
 
+  // System & Store Configuration
+  static const String systemConfig = "${baseUrl}system/app-config";
+
   // Customer Profile
   static const String customerProfile = "${baseUrl}customer/profile";
 

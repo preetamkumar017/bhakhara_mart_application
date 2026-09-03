@@ -246,6 +246,29 @@ class CheckoutView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
+            if (DateTime.now().hour >= 22 || DateTime.now().hour < 7) ...[
+              Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade300),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.bedtime_outlined, color: Colors.amber, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Store delivery hours are 7 AM - 10 PM. Orders placed now will be delivered fresh tomorrow morning!',
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             Obx(() => Column(
                   children: slots.map((slot) {
                     final isSelected = controller.selectedDeliverySlot.value == slot['id'];
