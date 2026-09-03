@@ -12,13 +12,12 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.scaffoldBackground,
     cardColor: AppColors.card,
     dividerColor: AppColors.divider,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       secondary: AppColors.secondary,
-      background: AppColors.background,
       surface: AppColors.surface,
       onPrimary: AppColors.textOnPrimary,
-      onBackground: AppColors.textPrimary,
+      onSurface: AppColors.textPrimary,
     ),
     appBarTheme: const AppBarTheme(
       elevation: 0,
@@ -63,13 +62,12 @@ class AppTheme {
     scaffoldBackgroundColor: AppColors.darkBackground,
     cardColor: AppColors.darkSurface,
     dividerColor: AppColors.darkTextSecondary,
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
       secondary: AppColors.secondary,
-      background: AppColors.darkBackground,
       surface: AppColors.darkSurface,
       onPrimary: AppColors.textOnPrimary,
-      onBackground: AppColors.darkTextPrimary,
+      onSurface: AppColors.darkTextPrimary,
     ),
     appBarTheme: const AppBarTheme(
       elevation: 0,
