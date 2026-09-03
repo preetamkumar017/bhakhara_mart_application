@@ -45,6 +45,13 @@ class ApiEndpoints {
   static String orderInvoice(int orderId) => "${baseUrl}order/$orderId/invoice";
   static String orderInvoicePdf(int orderId) => "${baseUrl}order/$orderId/invoice-pdf";
 
+  // Coupons & Discounts
+  static const String coupons = "${baseUrl}coupons";
+  static const String validateCoupon = "${baseUrl}coupons/validate";
+
+  // Push Notifications
+  static const String fcmToken = "${baseUrl}customer/fcm-token";
+
   // Address Management
   static const String addresses = "${baseUrl}addresses";
   static const String addressAdd = "${baseUrl}addresses/add";

@@ -1,6 +1,8 @@
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import '../repo/cart_repo.dart';
 import '../../../data/models/cart_model.dart';
+import '../../../data/models/coupon_model.dart';
 import '../../../modules/home/controller/home_controller.dart';
 
 class CartController extends GetxController {
@@ -8,20 +10,111 @@ class CartController extends GetxController {
 
   final items = <CartItemModel>[].obs;
   final isLoading = false.obs;
+  final isCouponLoading = false.obs;
+
+  // Coupon state
+  final appliedCouponCode = ''.obs;
+  final discountAmount = 0.0.obs;
+  final appliedCoupon = Rxn<CouponModel>();
+  final availableCoupons = <CouponModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
     loadCart();
+    loadAvailableCoupons();
   }
 
   Future<void> loadCart() async {
     isLoading.value = true;
-    items.assignAll(await _repo.fetchCart());
-    isLoading.value = false;
+    try {
+      items.assignAll(await _repo.fetchCart());
+      // Re-validate coupon if already applied
+      if (appliedCouponCode.value.isNotEmpty) {
+        await _revalidateAppliedCoupon();
+      }
+    } catch (e) {
+      // ignore
+    } finally {
+      isLoading.value = false;
+    }
 
-    // Trigger UI refresh across the app (ProductCard, etc.)
     _refreshHomeController();
+  }
+
+  Future<void> loadAvailableCoupons() async {
+    try {
+      final coupons = await _repo.fetchAvailableCoupons();
+      availableCoupons.assignAll(coupons);
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  Future<bool> applyCoupon(String code) async {
+    final cleanCode = code.trim().toUpperCase();
+    if (cleanCode.isEmpty) {
+      Fluttertoast.showToast(msg: "Please enter a valid coupon code");
+      return false;
+    }
+
+    if (items.isEmpty) {
+      Fluttertoast.showToast(msg: "Cart is empty");
+      return false;
+    }
+
+    isCouponLoading.value = true;
+    try {
+      final res = await _repo.validateCoupon(cleanCode, totalAmount);
+      if (res['status'] == true && res['data'] != null) {
+        final data = res['data'];
+        final disc = double.tryParse(data['discount_amount']?.toString() ?? '0') ?? 0.0;
+        
+        appliedCouponCode.value = cleanCode;
+        discountAmount.value = disc;
+        appliedCoupon.value = CouponModel(
+          code: cleanCode,
+          discountName: data['discount_name']?.toString() ?? cleanCode,
+          discountType: data['discount_type']?.toString() ?? 'FLAT',
+          discountValue: double.tryParse(data['discount_value']?.toString() ?? '0') ?? disc,
+          minOrderAmount: 0.0,
+        );
+
+        Fluttertoast.showToast(msg: "🎉 Coupon '$cleanCode' applied! You saved ₹${disc.toStringAsFixed(2)}");
+        return true;
+      } else {
+        Fluttertoast.showToast(msg: res['message'] ?? "Invalid coupon code");
+        return false;
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Failed to apply coupon. Please check minimum order value.");
+      return false;
+    } finally {
+      isCouponLoading.value = false;
+    }
+  }
+
+  void removeCoupon() {
+    appliedCouponCode.value = '';
+    discountAmount.value = 0.0;
+    appliedCoupon.value = null;
+    Fluttertoast.showToast(msg: "Coupon removed");
+  }
+
+  Future<void> _revalidateAppliedCoupon() async {
+    if (appliedCouponCode.value.isEmpty) return;
+    try {
+      final res = await _repo.validateCoupon(appliedCouponCode.value, totalAmount);
+      if (res['status'] == true && res['data'] != null) {
+        final data = res['data'];
+        discountAmount.value = double.tryParse(data['discount_amount']?.toString() ?? '0') ?? 0.0;
+      } else {
+        // Minimum amount not met anymore
+        removeCoupon();
+      }
+    } catch (e) {
+      removeCoupon();
+    }
   }
 
   /// Refresh HomeController to update ProductCard UI
@@ -66,17 +159,17 @@ class CartController extends GetxController {
 
   int get totalItems => items.length;
 
-  double get totalAmount =>
-      items.fold(0, (sum, e) => sum + e.subtotal);
+  double get totalAmount => items.fold(0, (sum, e) => sum + e.subtotal);
+
+  double get deliveryCharge => 0.0; // Free delivery standard or configurable
+
+  double get payableAmount => (totalAmount - discountAmount.value + deliveryCharge).clamp(0.0, double.infinity);
 
   // ================= CART STATE CHECK =================
-  /// Check if a product is already in cart by productId
-  /// Returns true if product exists in cart items
   bool isInCart(String productId) {
     return items.any((item) => item.productId == productId);
   }
 
-  /// Get cart item by productId (returns null if not in cart)
   CartItemModel? getCartItem(String productId) {
     try {
       return items.firstWhere((item) => item.productId == productId);

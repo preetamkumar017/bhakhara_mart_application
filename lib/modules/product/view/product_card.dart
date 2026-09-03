@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
@@ -155,21 +156,19 @@ class ProductCard extends StatelessWidget {
           children: [
             /// Product Image
             product.image.isNotEmpty
-                ? Image.network(
-                    '${ApiEndpoints.domain}/uploads/products/${product.image}',
+                ? CachedNetworkImage(
+                    imageUrl: '${ApiEndpoints.domain}/uploads/products/${product.image}',
                     fit: BoxFit.contain,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.primary.withOpacity(0.6),
-                          ),
+                    progressIndicatorBuilder: (context, url, progress) => Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        value: progress.progress,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary.withOpacity(0.6),
                         ),
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => _buildImageErrorState(),
+                      ),
+                    ),
+                    errorWidget: (_, __, ___) => _buildImageErrorState(),
                   )
                 : _buildImagePlaceholder(),
 

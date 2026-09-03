@@ -1,13 +1,29 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:bhakharamart/core/themes/app_colors.dart';
 import 'package:bhakharamart/data/models/cart_model.dart';
+import 'package:bhakharamart/data/models/coupon_model.dart';
 import 'package:bhakharamart/data/network/api_endpoints.dart';
 import 'package:bhakharamart/res/routes/routes_name.dart';
 import '../controller/cart_controller.dart';
 
-class CartView extends StatelessWidget {
+class CartView extends StatefulWidget {
   const CartView({super.key});
+
+  @override
+  State<CartView> createState() => _CartViewState();
+}
+
+class _CartViewState extends State<CartView> {
+  final TextEditingController _couponInputController = TextEditingController();
+
+  @override
+  void dispose() {
+    _couponInputController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +55,8 @@ class CartView extends StatelessWidget {
               ),
             ),
 
-            /// Price Summary & Checkout
-            _buildCheckoutSection(controller),
+            /// Price Summary & Checkout Section
+            _buildCheckoutSection(controller, context),
           ],
         );
       }),
@@ -105,6 +121,9 @@ class CartView extends StatelessWidget {
     CartController controller,
     int index,
   ) {
+    if (kDebugMode) {
+      debugPrint('${ApiEndpoints.domain}/uploads/products/${item.image}');
+    }
     return Dismissible(
       key: Key(item.id),
       direction: DismissDirection.endToStart,
@@ -149,36 +168,26 @@ class CartView extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
-          border: Border.all(
-            color: AppColors.divider.withValues(alpha: 0.5),
-          ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Product Image
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: item.image.isNotEmpty
-                    ? Image.network(
-                        '${ApiEndpoints.domain}/uploads/products/${item.image}',
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, error, stack) => const Icon(
-                          Icons.image_outlined,
-                          color: AppColors.textSecondary,
-                        ),
-                      )
-                    : const Icon(
-                        Icons.image_outlined,
-                        color: AppColors.textSecondary,
-                      ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: '${ApiEndpoints.domain}/uploads/products/${item.image}',
+                width: 70,
+                height: 70,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => Container(
+                  width: 70,
+                  height: 70,
+                  color: AppColors.card,
+                  child: const Icon(
+                    Icons.image_not_supported_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
             ),
 
@@ -200,20 +209,21 @@ class CartView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    item.unit,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
+                  if (item.unit.isNotEmpty)
+                    Text(
+                      item.unit,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     '₹${item.price.toStringAsFixed(2)}',
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                      color: AppColors.primary,
                     ),
                   ),
                 ],
@@ -223,25 +233,18 @@ class CartView extends StatelessWidget {
             /// Quantity Controls
             Container(
               decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.divider.withValues(alpha: 0.5),
-                ),
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  /// Increase Button
                   _buildQuantityButton(
                     icon: Icons.add,
                     onTap: () => controller.increaseQty(item),
                   ),
-
-                  /// Quantity
                   Container(
-                    constraints: const BoxConstraints(minWidth: 32),
+                    width: 32,
                     alignment: Alignment.center,
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
@@ -253,8 +256,6 @@ class CartView extends StatelessWidget {
                       ),
                     ),
                   ),
-
-                  /// Decrease Button
                   _buildQuantityButton(
                     icon: Icons.remove,
                     onTap: () => controller.decreaseQty(item),
@@ -276,116 +277,430 @@ class CartView extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        width: 28,
-        height: 24,
+        width: 32,
+        height: 28,
         decoration: BoxDecoration(
           color: AppColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           icon,
-          size: 14,
+          size: 16,
           color: AppColors.primary,
         ),
       ),
     );
   }
 
-  Widget _buildCheckoutSection(CartController controller) {
-    final double subtotal = controller.totalAmount;
-    final double discount = 0.0; // Can be calculated from promo codes
-    final double total = subtotal - discount;
+  Widget _buildCheckoutSection(CartController controller, BuildContext context) {
+    return Obx(() {
+      final double subtotal = controller.totalAmount;
+      final double discount = controller.discountAmount.value;
+      final double deliveryFee = controller.deliveryCharge;
+      final double total = controller.payableAmount;
+      final bool hasCoupon = controller.appliedCouponCode.value.isNotEmpty;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          /// Price Details
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textPrimary.withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, -4),
             ),
-            child: Column(
-              children: [
-                _buildPriceRow('Subtotal', subtotal),
-                if (discount > 0) ...[
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            /// Coupon Section
+            _buildCouponSection(controller, context, hasCoupon),
+
+            const SizedBox(height: 12),
+
+            /// Price Breakdown Details
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildPriceRow('Items Subtotal', subtotal),
+                  if (discount > 0) ...[
+                    const SizedBox(height: 8),
+                    _buildPriceRow(
+                      'Promo Savings (${controller.appliedCouponCode.value})',
+                      '-₹${discount.toStringAsFixed(2)}',
+                      isDiscount: true,
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  _buildPriceRow(
+                    'Delivery Fee',
+                    deliveryFee == 0 ? 'FREE' : '₹${deliveryFee.toStringAsFixed(2)}',
+                    isFree: deliveryFee == 0,
+                  ),
                   const Divider(height: 16),
-                  _buildPriceRow('Discount', '-$discount', isDiscount: true),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Grand Total',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            'Cash On Delivery (COD)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        '₹${total.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-                const Divider(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              ),
+            ),
+
+            const SizedBox(height: 14),
+
+            /// Proceed to Checkout Button
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () => Get.toNamed(RoutesName.checkout),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Total',
-                      style: TextStyle(
+                    const Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Proceed to Checkout • ₹${total.toStringAsFixed(2)}',
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    Text(
-                      '₹${total.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
+                        color: Colors.white,
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-
-          /// Checkout Button
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () => Get.toNamed(RoutesName.checkout),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildCouponSection(CartController controller, BuildContext context, bool hasCoupon) {
+    if (hasCoupon) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppColors.success.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified, color: AppColors.success, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
                   Text(
-                    'Checkout • ₹${total.toStringAsFixed(2)}',
+                    "Coupon '${controller.appliedCouponCode.value}' Applied!",
                     style: const TextStyle(
-                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontSize: 13,
+                      color: AppColors.success,
+                    ),
+                  ),
+                  Text(
+                    "You saved ₹${controller.discountAmount.value.toStringAsFixed(2)} on this order",
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
               ),
+            ),
+            TextButton(
+              onPressed: () => controller.removeCoupon(),
+              child: const Text(
+                "REMOVE",
+                style: TextStyle(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: SizedBox(
+                height: 42,
+                child: TextField(
+                  controller: _couponInputController,
+                  textCapitalization: TextCapitalization.characters,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    hintText: "Enter Promo Code (e.g. WELCOME50)",
+                    hintStyle: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: AppColors.textSecondary.withValues(alpha: 0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              height: 42,
+              child: Obx(() => ElevatedButton(
+                    onPressed: controller.isCouponLoading.value
+                        ? null
+                        : () async {
+                            final success = await controller.applyCoupon(_couponInputController.text);
+                            if (success) {
+                              _couponInputController.clear();
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    child: controller.isCouponLoading.value
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : const Text(
+                            "APPLY",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                  )),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: () => _showOffersBottomSheet(controller, context),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.local_offer_outlined, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 6),
+                  Obx(() => Text(
+                        controller.availableCoupons.isNotEmpty
+                            ? "View ${controller.availableCoupons.length} Available Offers"
+                            : "View Available Offers",
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      )),
+                ],
+              ),
+              const Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.primary),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showOffersBottomSheet(CartController controller, BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.local_offer, color: AppColors.primary),
+                      SizedBox(width: 8),
+                      Text(
+                        "Available Offers & Coupons",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const Divider(),
+              const SizedBox(height: 8),
+              Obx(() {
+                if (controller.availableCoupons.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        "No coupons available at the moment.",
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: controller.availableCoupons.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (_, index) {
+                    final coupon = controller.availableCoupons[index];
+                    return _buildCouponCard(coupon, controller, context);
+                  },
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCouponCard(CouponModel coupon, CartController controller, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppColors.primary, style: BorderStyle.solid),
+            ),
+            child: Text(
+              coupon.code,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  coupon.discountName ?? coupon.code,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Text(
+                  coupon.description ?? "Min order: ₹${coupon.minOrderAmount.toInt()}",
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              controller.applyCoupon(coupon.code);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: const Size(60, 32),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+            ),
+            child: const Text(
+              "APPLY",
+              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -393,23 +708,25 @@ class CartView extends StatelessWidget {
     );
   }
 
-  Widget _buildPriceRow(String label, dynamic value, {bool isDiscount = false}) {
+  Widget _buildPriceRow(String label, dynamic value, {bool isDiscount = false, bool isFree = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             color: isDiscount ? AppColors.success : AppColors.textSecondary,
           ),
         ),
         Text(
           value is String ? value : '₹${value.toStringAsFixed(2)}',
           style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: isDiscount ? AppColors.success : AppColors.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: isDiscount
+                ? AppColors.success
+                : (isFree ? AppColors.success : AppColors.textPrimary),
           ),
         ),
       ],

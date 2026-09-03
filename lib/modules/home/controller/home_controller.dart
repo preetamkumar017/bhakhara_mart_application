@@ -80,10 +80,10 @@ class HomeController extends GetxController {
   /// 🔥 REQUIRED BY ProductCard
 
   void openProduct(ProductModel product) {
-    Get.toNamed(
-      '/product-detail',
-      arguments: product,
-    );
+    // Get.toNamed(
+    //   '/product-detail',
+    //   arguments: product,
+    // );
   }
 
   void addToCart(ProductModel product) {

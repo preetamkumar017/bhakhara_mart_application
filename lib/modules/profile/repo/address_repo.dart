@@ -6,9 +6,6 @@ class AddressRepo {
   final _api = NetworkApiServices();
 
   /// Fetch all addresses for the logged-in customer
-  /// 
-  /// Returns list of [AddressModel]
-  /// Throws exception on API error
   Future<List<AddressModel>> fetchAddresses() async {
     final response = await _api.getApi(ApiEndpoints.addresses);
     
@@ -21,15 +18,15 @@ class AddressRepo {
   }
 
   /// Add a new address
-  /// 
-  /// Returns true on success
-  /// Throws exception on API error
   Future<bool> addAddress({
     required String addressLine1,
     required String addressLine2,
     required String city,
     required String state,
     required String pincode,
+    String? landmark,
+    String addressType = 'Home',
+    String? deliveryInstructions,
     String? latitude,
     String? longitude,
   }) async {
@@ -41,6 +38,10 @@ class AddressRepo {
         'city': city,
         'state': state,
         'pincode': pincode,
+        if (landmark != null && landmark.isNotEmpty) 'landmark': landmark,
+        'address_type': addressType,
+        if (deliveryInstructions != null && deliveryInstructions.isNotEmpty)
+          'delivery_instructions': deliveryInstructions,
         if (latitude != null) 'latitude': latitude,
         if (longitude != null) 'longitude': longitude,
       },
@@ -74,9 +75,6 @@ class AddressRepo {
   }
 
   /// Update an existing address
-  /// 
-  /// Returns true on success
-  /// Throws exception on validation error or API error
   Future<bool> updateAddress({
     required int addressId,
     String? addressLine1,
@@ -84,15 +82,16 @@ class AddressRepo {
     String? city,
     String? state,
     String? pincode,
+    String? landmark,
+    String? addressType,
+    String? deliveryInstructions,
     String? latitude,
     String? longitude,
   }) async {
-    // Validate addressId is provided
     if (addressId <= 0) {
       throw Exception('address_id required');
     }
 
-    // Build update payload with only provided fields
     final Map<String, dynamic> payload = {'address_id': addressId};
     
     if (addressLine1 != null) payload['address_line1'] = addressLine1;
@@ -100,6 +99,9 @@ class AddressRepo {
     if (city != null) payload['city'] = city;
     if (state != null) payload['state'] = state;
     if (pincode != null) payload['pincode'] = pincode;
+    if (landmark != null) payload['landmark'] = landmark;
+    if (addressType != null) payload['address_type'] = addressType;
+    if (deliveryInstructions != null) payload['delivery_instructions'] = deliveryInstructions;
     if (latitude != null) payload['latitude'] = latitude;
     if (longitude != null) payload['longitude'] = longitude;
 
@@ -115,4 +117,3 @@ class AddressRepo {
     }
   }
 }
-

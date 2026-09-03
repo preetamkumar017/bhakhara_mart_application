@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:bhakharamart/data/network/base_api_services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 
 import '../app_exception.dart';
 import 'api_endpoints.dart';
+import 'secure_token_storage.dart';
 
 class NetworkApiServices extends BaseApiServices {
   final _storage = GetStorage();
@@ -24,23 +26,18 @@ class NetworkApiServices extends BaseApiServices {
   Future<dynamic> getApi(String url) async {
     dynamic responseJson;
     try {
-      // Print request details
-      print('════════════════════════════════════════════════════════════');
-      print('🌐 API REQUEST: GET');
-      print('📍 URL: $url');
-      print('────────────────────────────────────────────────────────────');
+      if (kDebugMode) debugPrint('API GET $url');
 
       final response = await http
           .get(
         Uri.parse(url),
-        headers: _defaultHeaders(),
+        headers: await _defaultHeaders(),
       )
           .timeout(const Duration(seconds: 10));
 
-      // Print response details
-      print('📥 RESPONSE STATUS: ${response.statusCode}');
-      print('📥 RESPONSE BODY: ${response.body}');
-      print('════════════════════════════════════════════════════════════');
+      if (kDebugMode) {
+        debugPrint('API GET $url -> ${response.statusCode}');
+      }
 
       responseJson = await _handleResponse(response, () => getApi(url));
     } on SocketException {
@@ -56,25 +53,19 @@ class NetworkApiServices extends BaseApiServices {
   Future<dynamic> postApi(String url, Map<String, dynamic> body) async {
     dynamic responseJson;
     try {
-      // Print request details
-      print('════════════════════════════════════════════════════════════');
-      print('🌐 API REQUEST: POST');
-      print('📍 URL: $url');
-      print('📤 REQUEST BODY: ${jsonEncode(body)}');
-      print('────────────────────────────────────────────────────────────');
+      if (kDebugMode) debugPrint('API POST $url');
 
       final response = await http
           .post(
         Uri.parse(url),
-        headers: _defaultHeaders(),
+        headers: await _defaultHeaders(),
         body: jsonEncode(body),
       )
           .timeout(const Duration(seconds: 10));
 
-      // Print response details
-      print('📥 RESPONSE STATUS: ${response.statusCode}');
-      print('📥 RESPONSE BODY: ${response.body}');
-      print('════════════════════════════════════════════════════════════');
+      if (kDebugMode) {
+        debugPrint('API POST $url -> ${response.statusCode}');
+      }
 
       responseJson = await _handleResponse(response, () => postApi(url, body));
     } on SocketException {
@@ -93,7 +84,7 @@ class NetworkApiServices extends BaseApiServices {
       final response = await http
           .put(
         Uri.parse(url),
-        headers: _defaultHeaders(),
+        headers: await _defaultHeaders(),
         body: jsonEncode(body),
       )
           .timeout(const Duration(seconds: 10));
@@ -115,7 +106,7 @@ class NetworkApiServices extends BaseApiServices {
       final response = await http
           .patch(
         Uri.parse(url),
-        headers: _defaultHeaders(),
+        headers: await _defaultHeaders(),
         body: jsonEncode(body),
       )
           .timeout(const Duration(seconds: 10));
@@ -137,7 +128,7 @@ class NetworkApiServices extends BaseApiServices {
       final response = await http
           .delete(
         Uri.parse(url),
-        headers: _defaultHeaders(),
+        headers: await _defaultHeaders(),
         body: jsonEncode(body),
       )
           .timeout(const Duration(seconds: 10));
@@ -184,10 +175,8 @@ class NetworkApiServices extends BaseApiServices {
   // =========================
   // HEADERS (CENTRAL PLACE)
   // =========================
-  Map<String, String> _defaultHeaders() {
-    // Get token from storage
-    final box = GetStorage();
-    final token = box.read('token') ?? box.read('access_token');
+  Future<Map<String, String>> _defaultHeaders() async {
+    final token = await SecureTokenStorage.readAccessToken();
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -254,7 +243,7 @@ class NetworkApiServices extends BaseApiServices {
   // REFRESH TOKEN LOGIC
   // =========================
   Future<dynamic> _handleUnauthorized(Function() retryFn) async {
-    final refreshToken = _storage.read('refresh_token');
+    final refreshToken = await SecureTokenStorage.readRefreshToken();
 
     // If no refresh token, user must login again
     if (refreshToken == null) {
@@ -288,14 +277,13 @@ class NetworkApiServices extends BaseApiServices {
           final newRefreshToken = responseBody['refresh_token'];
 
           if (newAccessToken != null) {
-            await _storage.write('token', newAccessToken);
-            await _storage.write('access_token', newAccessToken);
+            await SecureTokenStorage.writeAccessToken(newAccessToken);
           }
           if (newRefreshToken != null) {
-            await _storage.write('refresh_token', newRefreshToken);
+            await SecureTokenStorage.writeRefreshToken(newRefreshToken);
           }
 
-          print('Token refreshed successfully');
+          if (kDebugMode) debugPrint('Token refreshed successfully');
 
           // Execute queued retry callbacks
           _processRefreshQueue(true);
@@ -369,9 +357,7 @@ class NetworkApiServices extends BaseApiServices {
 
   /// Clear tokens and navigate to login
   Future<void> _clearTokensAndLogout() async {
-    await _storage.remove('token');
-    await _storage.remove('access_token');
-    await _storage.remove('refresh_token');
+    await SecureTokenStorage.clear();
     await _storage.write('isLoggedIn', false);
 
     // Navigate to login if not already there

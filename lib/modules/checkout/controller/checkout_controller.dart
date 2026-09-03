@@ -62,6 +62,8 @@ class CheckoutController extends GetxController {
     lastErrorMessage.value = '';
   }
 
+  final selectedInstruction = ''.obs;
+
   /// Place an order with the selected address
   /// 
   /// Returns [OrderModel] if successful, null if cart is empty or error
@@ -89,11 +91,23 @@ class CheckoutController extends GetxController {
     isPlacingOrder.value = true;
 
     try {
-      final order = await _orderRepo.placeOrder(selectedAddressId.value);
+      final coupon = cartController.appliedCouponCode.value;
+      final instructions = selectedInstruction.value.isNotEmpty
+          ? selectedInstruction.value
+          : landmarkController.text.trim();
+
+      final order = await _orderRepo.placeOrder(
+        selectedAddressId.value,
+        couponCode: coupon.isNotEmpty ? coupon : null,
+        deliveryInstructions: instructions.isNotEmpty ? instructions : null,
+      );
       
       if (order.isSuccess) {
         placedOrder.value = order;
         lastErrorMessage.value = '';
+        
+        // Reset applied coupon in cart
+        cartController.removeCoupon();
         
         SnackBarUtils.showSuccess(
           'Order placed successfully!\nOrder No: ${order.orderNo}\nAmount: ₹${order.totalAmount.toStringAsFixed(2)}',

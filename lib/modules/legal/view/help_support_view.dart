@@ -120,14 +120,14 @@ class HelpSupportView extends StatelessWidget {
                     context,
                     icon: Icons.email_outlined,
                     label: 'Email',
-                    value: 'support@bhakharamart.com',
+                    value: 'bhakharamart@gmail.com',
                   ),
                   const SizedBox(height: 12),
                   _buildContactRow(
                     context,
                     icon: Icons.phone_outlined,
                     label: 'Phone',
-                    value: '+91-XXXXXXXXXX',
+                    value: '+91-6260898800',
                   ),
                   const SizedBox(height: 12),
                   _buildContactRow(

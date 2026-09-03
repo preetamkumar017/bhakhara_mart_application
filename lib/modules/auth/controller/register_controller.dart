@@ -4,6 +4,7 @@ import 'package:get_storage/get_storage.dart';
 
 import '../../../data/network/network_api_services.dart';
 import '../../../data/network/api_endpoints.dart';
+import '../../../data/network/secure_token_storage.dart';
 import '../../../core/utils/snackbar.dart';
 import '../../../res/routes/routes_name.dart';
 
@@ -74,17 +75,12 @@ class RegisterController extends GetxController {
         final refresh = response['refresh_token'];
 
         if (tokenValue != null) {
-          await _storage.write('token', tokenValue);
-          await _storage.write('access_token', tokenValue);
+          await SecureTokenStorage.writeAccessToken(tokenValue);
         }
         if (refresh != null) {
-          await _storage.write('refresh_token', refresh);
+          await SecureTokenStorage.writeRefreshToken(refresh);
         }
         await _storage.write('isLoggedIn', true);
-
-        // Verify token was stored (debug)
-        final stored = _storage.read('token') ?? _storage.read('access_token');
-        print('Register: stored token = $stored');
 
         SnackBarUtils.showSuccess(response['message'] ?? 'Registration successful');
 

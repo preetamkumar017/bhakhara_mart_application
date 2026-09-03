@@ -6,6 +6,9 @@ class AddressModel {
   String city;
   String state;
   String pincode;
+  String? landmark;
+  String addressType;
+  String? deliveryInstructions;
   String? latitude;
   String? longitude;
   String isDefault;
@@ -20,6 +23,9 @@ class AddressModel {
     required this.city,
     required this.state,
     required this.pincode,
+    this.landmark,
+    this.addressType = 'Home',
+    this.deliveryInstructions,
     this.latitude,
     this.longitude,
     required this.isDefault,
@@ -41,6 +47,9 @@ class AddressModel {
       city: parseString(json['city']),
       state: parseString(json['state']),
       pincode: parseString(json['pincode']),
+      landmark: json['landmark']?.toString(),
+      addressType: json['address_type']?.toString() ?? 'Home',
+      deliveryInstructions: json['delivery_instructions']?.toString(),
       latitude: json['latitude']?.toString(),
       longitude: json['longitude']?.toString(),
       isDefault: parseString(json['is_default']),
@@ -54,6 +63,7 @@ class AddressModel {
     final parts = [
       addressLine1,
       if (addressLine2.isNotEmpty) addressLine2,
+      if (landmark != null && landmark!.isNotEmpty) 'Near $landmark',
       '$city, $state $pincode',
     ];
     return parts.where((e) => e.isNotEmpty).join('\n');
@@ -64,6 +74,7 @@ class AddressModel {
     final parts = [
       addressLine1,
       if (addressLine2.isNotEmpty) addressLine2,
+      if (landmark != null && landmark!.isNotEmpty) 'Near $landmark',
       '$city - $pincode',
     ];
     return parts.where((e) => e.isNotEmpty).join(', ');
@@ -81,6 +92,9 @@ class AddressModel {
       'city': city,
       'state': state,
       'pincode': pincode,
+      'landmark': landmark,
+      'address_type': addressType,
+      'delivery_instructions': deliveryInstructions,
       'latitude': latitude,
       'longitude': longitude,
       'is_default': isDefault,
@@ -89,4 +103,3 @@ class AddressModel {
     };
   }
 }
-

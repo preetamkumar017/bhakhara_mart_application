@@ -20,6 +20,9 @@ class AddressView extends StatelessWidget {
   final cityController = TextEditingController();
   final stateController = TextEditingController();
   final pincodeController = TextEditingController();
+  final landmarkController = TextEditingController();
+  final RxString selectedAddressType = 'Home'.obs;
+  final RxString selectedInstruction = ''.obs;
 
   Future<void> _initialFetch() async {
     await fetchAddresses();
@@ -27,23 +30,23 @@ class AddressView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initial fetch
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initialFetch();
     });
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBackground,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('My Addresses'),
+        title: const Text('My Delivery Addresses'),
         centerTitle: true,
         backgroundColor: AppColors.surface,
         elevation: 0,
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddAddressDialog(context),
         backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Add New Address', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Obx(() {
         if (isLoading.value) {
@@ -55,16 +58,17 @@ class AddressView extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.location_off,
+                const Icon(
+                  Icons.location_off_outlined,
                   size: 64,
                   color: AppColors.textSecondary,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'No addresses added yet',
+                  'No delivery addresses saved yet',
                   style: TextStyle(
                     fontSize: 16,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -73,6 +77,7 @@ class AddressView extends StatelessWidget {
                   onPressed: () => _showAddAddressDialog(context),
                   icon: const Icon(Icons.add),
                   label: const Text('Add Address'),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
                 ),
               ],
             ),
@@ -111,82 +116,109 @@ class AddressView extends StatelessWidget {
         border: Border.all(
           color: address.isDefaultAddress 
               ? AppColors.primary 
-              : AppColors.divider,
+              : Colors.grey.shade300,
           width: address.isDefaultAddress ? 2 : 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Default badge
-          if (address.isDefaultAddress)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(10),
-                  topRight: Radius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'DEFAULT',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+          /// Type badge & Default badge
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: address.isDefaultAddress ? AppColors.primary : AppColors.card,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
             ),
-          
-          // Address content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        address.fullAddress,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
+                    Icon(
+                      address.addressType == 'Work'
+                          ? Icons.work_outline
+                          : (address.addressType == 'Other' ? Icons.place_outlined : Icons.home_outlined),
+                      size: 14,
+                      color: address.isDefaultAddress ? Colors.white : AppColors.primary,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      address.addressType.toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: address.isDefaultAddress ? Colors.white : AppColors.primary,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                
-                // Actions row
+                if (address.isDefaultAddress)
+                  const Text(
+                    'DEFAULT ADDRESS',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          
+          /// Address content
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  address.addressLine1,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                ),
+                if (address.addressLine2.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(address.addressLine2, style: const TextStyle(fontSize: 13, color: AppColors.textPrimary)),
+                ],
+                if (address.landmark != null && address.landmark!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text('Near ${address.landmark}', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                ],
+                const SizedBox(height: 2),
+                Text(
+                  '${address.city}, ${address.state} - ${address.pincode}',
+                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+                if (address.deliveryInstructions != null && address.deliveryInstructions!.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 12, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Note: ${address.deliveryInstructions}',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ],
+                const Divider(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    // Set as default
                     if (!address.isDefaultAddress)
-                      TextButton(
+                      TextButton.icon(
                         onPressed: () => _setDefaultAddress(address),
-                        child: const Text(
-                          'Set as Default',
-                          style: TextStyle(color: AppColors.primary),
-                        ),
+                        icon: const Icon(Icons.check_circle_outline, size: 16),
+                        label: const Text('Set as Default', style: TextStyle(fontSize: 12)),
                       ),
-                    
-                    // Edit
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 20),
-                      onPressed: () => _showEditAddressDialog(context, address),
-                      color: AppColors.textSecondary,
-                    ),
-                    
-                    // Delete
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
+                      icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
                       onPressed: () => _deleteAddress(address),
-                      color: AppColors.error,
+                      tooltip: 'Delete',
                     ),
                   ],
                 ),
@@ -203,41 +235,79 @@ class AddressView extends StatelessWidget {
     
     Get.dialog(
       AlertDialog(
-        title: const Text('Add Address'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Add Delivery Address'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const Text('Address Type', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Obx(() => Row(
+                    children: ['Home', 'Work', 'Other'].map((type) {
+                      final isSelected = selectedAddressType.value == type;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: ChoiceChip(
+                          label: Text(type),
+                          selected: isSelected,
+                          selectedColor: AppColors.primary,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : AppColors.textPrimary,
+                            fontSize: 11,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          onSelected: (_) => selectedAddressType.value = type,
+                        ),
+                      );
+                    }).toList(),
+                  )),
+              const SizedBox(height: 10),
               _buildDialogTextField(
                 controller: addressLine1Controller,
-                label: 'Address Line 1 *',
-                hint: 'House No., Street Name',
+                label: 'House / Flat / Building No. *',
+                hint: 'e.g. Flat 402, Shivam Heights',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildDialogTextField(
                 controller: addressLine2Controller,
-                label: 'Address Line 2',
-                hint: 'Landmark, Area',
+                label: 'Street / Area / Colony',
+                hint: 'e.g. Main Road, Shankar Nagar',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               _buildDialogTextField(
-                controller: cityController,
-                label: 'City *',
-                hint: 'City name',
+                controller: landmarkController,
+                label: 'Landmark',
+                hint: 'e.g. Near Water Tank or School',
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDialogTextField(
+                      controller: cityController,
+                      label: 'City *',
+                      hint: 'City',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _buildDialogTextField(
+                      controller: pincodeController,
+                      label: 'Pincode *',
+                      hint: '6-digit',
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               _buildDialogTextField(
                 controller: stateController,
                 label: 'State',
-                hint: 'State name',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogTextField(
-                controller: pincodeController,
-                label: 'Pincode *',
-                hint: '6-digit pincode',
-                keyboardType: TextInputType.number,
-                maxLength: 6,
+                hint: 'State',
               ),
             ],
           ),
@@ -249,70 +319,8 @@ class AddressView extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () => _addAddress(context),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showEditAddressDialog(BuildContext context, AddressModel address) {
-    // Pre-fill form
-    addressLine1Controller.text = address.addressLine1;
-    addressLine2Controller.text = address.addressLine2;
-    cityController.text = address.city;
-    stateController.text = address.state;
-    pincodeController.text = address.pincode;
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Edit Address'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDialogTextField(
-                controller: addressLine1Controller,
-                label: 'Address Line 1 *',
-                hint: 'House No., Street Name',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogTextField(
-                controller: addressLine2Controller,
-                label: 'Address Line 2',
-                hint: 'Landmark, Area',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogTextField(
-                controller: cityController,
-                label: 'City *',
-                hint: 'City name',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogTextField(
-                controller: stateController,
-                label: 'State',
-                hint: 'State name',
-              ),
-              const SizedBox(height: 12),
-              _buildDialogTextField(
-                controller: pincodeController,
-                label: 'Pincode *',
-                hint: '6-digit pincode',
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => _updateAddress(context, address),
-            child: const Text('Update'),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+            child: const Text('Save Address', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -331,6 +339,8 @@ class AddressView extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -346,12 +356,14 @@ class AddressView extends StatelessWidget {
     cityController.clear();
     stateController.clear();
     pincodeController.clear();
+    landmarkController.clear();
+    selectedAddressType.value = 'Home';
+    selectedInstruction.value = '';
   }
 
   Future<void> _addAddress(BuildContext context) async {
-    // Validate required fields
     if (addressLine1Controller.text.trim().isEmpty) {
-      SnackBarUtils.showError('Address line1 is required');
+      SnackBarUtils.showError('Address line 1 is required');
       return;
     }
     if (cityController.text.trim().isEmpty) {
@@ -373,6 +385,9 @@ class AddressView extends StatelessWidget {
         city: cityController.text.trim(),
         state: stateController.text.trim(),
         pincode: pincodeController.text.trim(),
+        landmark: landmarkController.text.trim(),
+        addressType: selectedAddressType.value,
+        deliveryInstructions: selectedInstruction.value,
       );
       if (success) {
         SnackBarUtils.showSuccess('Address added successfully');
@@ -380,37 +395,6 @@ class AddressView extends StatelessWidget {
       }
     } catch (e) {
       SnackBarUtils.showError('Failed to add address: $e');
-    } finally {
-      isAdding.value = false;
-      _clearForm();
-    }
-  }
-
-  Future<void> _updateAddress(BuildContext context, AddressModel address) async {
-    // Validate required fields
-    if (addressLine1Controller.text.trim().isEmpty) {
-      SnackBarUtils.showError('Address line1 is required');
-      return;
-    }
-
-    Get.back(); // Close dialog
-
-    try {
-      isAdding.value = true;
-      final success = await _addressRepo.updateAddress(
-        addressId: int.parse(address.id),
-        addressLine1: addressLine1Controller.text.trim(),
-        addressLine2: addressLine2Controller.text.trim(),
-        city: cityController.text.trim(),
-        state: stateController.text.trim(),
-        pincode: pincodeController.text.trim(),
-      );
-      if (success) {
-        SnackBarUtils.showSuccess('Address updated successfully');
-        await fetchAddresses();
-      }
-    } catch (e) {
-      SnackBarUtils.showError('Failed to update address: $e');
     } finally {
       isAdding.value = false;
       _clearForm();
@@ -434,7 +418,7 @@ class AddressView extends StatelessWidget {
         content: const Text('Are you sure you want to delete this address?'),
         actions: [
           TextButton(
-            onPressed: () => Get.back(),
+            onPressed: () => Get.back(result: false),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
@@ -448,17 +432,14 @@ class AddressView extends StatelessWidget {
       ),
     );
 
-    if (confirm != true) return;
-
-    try {
-      final success = await _addressRepo.deleteAddress(int.parse(address.id));
-      if (success) {
+    if (confirm == true) {
+      try {
+        await _addressRepo.deleteAddress(int.parse(address.id));
         SnackBarUtils.showSuccess('Address deleted');
-        addresses.remove(address);
+        await fetchAddresses();
+      } catch (e) {
+        SnackBarUtils.showError('Failed to delete address: $e');
       }
-    } catch (e) {
-      SnackBarUtils.showError('Failed to delete: $e');
     }
   }
 }
-

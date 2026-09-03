@@ -5,6 +5,7 @@ import '../../../modules/cart/controller/cart_controller.dart';
 import '../repo/profile_repo.dart';
 import '../../../data/models/customer_model.dart';
 import '../../../core/utils/snackbar.dart';
+import '../../../data/network/secure_token_storage.dart';
 
 class ProfileController extends GetxController {
   final ProfileRepo _profileRepo = ProfileRepo();
@@ -109,7 +110,7 @@ class ProfileController extends GetxController {
   bool get hasProfile => customer.value.id.isNotEmpty;
 
   /// Logout user
-  void logout() {
+  Future<void> logout() async {
     // Clear user info
     customer.value = CustomerModel(
       id: '',
@@ -124,6 +125,7 @@ class ProfileController extends GetxController {
     // Clear storage
     final storage = GetStorage();
     storage.erase();
+    await SecureTokenStorage.clear();
 
     // Remove all non-permanent Getx controllers
     Get.deleteAll(force: false);

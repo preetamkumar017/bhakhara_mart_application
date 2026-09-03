@@ -1,5 +1,6 @@
 import '../../../data/network/network_api_services.dart';
 import '../../../data/models/cart_model.dart';
+import '../../../data/models/coupon_model.dart';
 import '../../../data/network/api_endpoints.dart';
 
 class CartRepo {
@@ -7,7 +8,7 @@ class CartRepo {
 
   Future<List<CartItemModel>> fetchCart() async {
     final res = await _api.getApi(ApiEndpoints.cart);
-    final List list = res['data'];
+    final List list = res['data'] ?? [];
     return list.map((e) => CartItemModel.fromJson(e)).toList();
   }
 
@@ -30,5 +31,26 @@ class CartRepo {
       ApiEndpoints.cartRemove,
       {'product_id': productId},
     );
+  }
+
+  Future<List<CouponModel>> fetchAvailableCoupons() async {
+    try {
+      final res = await _api.getApi(ApiEndpoints.coupons);
+      final List list = res['data'] ?? [];
+      return list.map((e) => CouponModel.fromJson(e)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> validateCoupon(String code, double cartAmount) async {
+    final res = await _api.postApi(
+      ApiEndpoints.validateCoupon,
+      {
+        'code': code,
+        'cart_amount': cartAmount,
+      },
+    );
+    return res;
   }
 }
