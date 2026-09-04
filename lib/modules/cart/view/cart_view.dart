@@ -39,7 +39,18 @@ class _CartViewState extends State<CartView> {
         }
 
         if (controller.items.isEmpty) {
-          return _buildEmptyCartView();
+          return RefreshIndicator(
+            onRefresh: controller.loadCart,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: _buildEmptyCartView(),
+                ),
+              ],
+            ),
+          );
         }
 
         return Column(
@@ -49,14 +60,17 @@ class _CartViewState extends State<CartView> {
 
             /// Cart Items List & Cross-Sell Recommendations
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  ...controller.items.asMap().entries.map((entry) {
-                    return _buildCartItem(entry.value, controller, entry.key);
-                  }),
-                  _buildRecommendationsSection(controller),
-                ],
+              child: RefreshIndicator(
+                onRefresh: controller.loadCart,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    ...controller.items.asMap().entries.map((entry) {
+                      return _buildCartItem(entry.value, controller, entry.key);
+                    }),
+                    _buildRecommendationsSection(controller),
+                  ],
+                ),
               ),
             ),
 
@@ -111,6 +125,7 @@ class _CartViewState extends State<CartView> {
         Obx(() => controller.items.isNotEmpty
             ? IconButton(
                 onPressed: () => _showClearCartDialog(controller),
+                tooltip: 'Clear cart',
                 icon: const Icon(
                   Icons.delete_outline,
                   color: AppColors.textSecondary,
@@ -606,6 +621,7 @@ class _CartViewState extends State<CartView> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
+                    tooltip: 'Close',
                     icon: const Icon(Icons.close),
                   ),
                 ],

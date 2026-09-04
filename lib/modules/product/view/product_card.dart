@@ -375,18 +375,22 @@ class ProductCard extends StatelessWidget {
 
     return Obx(() {
       final isFav = wishlistController.isFavorite(product.id) || product.isFavorite;
-      return Material(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
+      return Semantics(
+        button: true,
+        label: isFav ? 'Remove from wishlist' : 'Add to wishlist',
+        child: Material(
+          color: Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(20),
-          onTap: () => wishlistController.toggleWishlist(product),
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            child: Icon(
-              isFav ? Icons.favorite : Icons.favorite_border_outlined,
-              size: 18,
-              color: isFav ? AppColors.error : AppColors.textSecondary,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () => wishlistController.toggleWishlist(product),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              child: Icon(
+                isFav ? Icons.favorite : Icons.favorite_border_outlined,
+                size: 18,
+                color: isFav ? AppColors.error : AppColors.textSecondary,
+              ),
             ),
           ),
         ),
@@ -563,22 +567,26 @@ class ProductCard extends StatelessWidget {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: AppColors.primary,
-      borderRadius: BorderRadius.circular(4),
-      child: InkWell(
+    return Semantics(
+      button: true,
+      label: icon == Icons.add ? 'Increase quantity' : 'Decrease quantity',
+      child: Material(
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(4),
-        onTap: onTap,
-        child: Container(
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-          ),
-          child: Icon(
-            icon,
-            size: 14,
-            color: Colors.white,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(4),
+          onTap: onTap,
+          child: Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Icon(
+              icon,
+              size: 14,
+              color: Colors.white,
+            ),
           ),
         ),
       ),

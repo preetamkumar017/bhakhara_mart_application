@@ -31,6 +31,7 @@ class ProductListView extends StatelessWidget {
         actions: [
           IconButton(
             onPressed: () => Get.toNamed(RoutesName.cart),
+            tooltip: 'Cart',
             icon: Stack(
               children: [
                 const Icon(Icons.shopping_cart_outlined),
@@ -173,66 +174,73 @@ class ProductListView extends StatelessWidget {
               }
 
               if (controller.products.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                return RefreshIndicator(
+                  onRefresh: () => controller.loadProducts(categoryId, force: true),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     children: [
+                      const SizedBox(height: 80),
                       Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade400),
                       const SizedBox(height: 12),
-                      const Text(
-                        'No products found in this category',
-                        style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                      const Center(
+                        child: Text(
+                          'No products found in this category',
+                          style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                        ),
                       ),
                     ],
                   ),
                 );
               }
 
-              return NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification scrollInfo) {
-                  if (scrollInfo.metrics.pixels >=
-                      scrollInfo.metrics.maxScrollExtent - 200) {
-                    controller.loadMoreProducts();
-                  }
-                  return false;
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsets.all(16),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.68,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
-                        delegate: SliverChildBuilderDelegate(
-                          (_, index) {
-                            final ProductModel product =
-                                controller.products[index];
-                            return ProductCard(product: product);
-                          },
-                          childCount: controller.products.length,
-                        ),
-                      ),
-                    ),
-                    if (controller.isLoadingMore.value)
-                      const SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2.5),
-                            ),
+              return RefreshIndicator(
+                onRefresh: () => controller.loadProducts(categoryId, force: true),
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (scrollInfo.metrics.pixels >=
+                        scrollInfo.metrics.maxScrollExtent - 200) {
+                      controller.loadMoreProducts();
+                    }
+                    return false;
+                  },
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.all(16),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.68,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (_, index) {
+                              final ProductModel product =
+                                  controller.products[index];
+                              return ProductCard(product: product);
+                            },
+                            childCount: controller.products.length,
                           ),
                         ),
                       ),
-                  ],
+                      if (controller.isLoadingMore.value)
+                        const SliverToBoxAdapter(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               );
             }),

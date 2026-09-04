@@ -38,7 +38,7 @@ class CartController extends GetxController {
       }
       loadRecommendations();
     } catch (e) {
-      // ignore
+      Fluttertoast.showToast(msg: "Unable to load your cart. Pull down to try again.");
     } finally {
       isLoading.value = false;
     }
@@ -50,7 +50,9 @@ class CartController extends GetxController {
     try {
       final recs = await _repo.fetchCartRecommendations();
       recommendations.assignAll(recs);
-    } catch (_) {}
+    } catch (_) {
+      // Recommendations are a non-critical enhancement; failing silently here is fine.
+    }
   }
 
   Future<void> loadAvailableCoupons() async {
@@ -58,7 +60,7 @@ class CartController extends GetxController {
       final coupons = await _repo.fetchAvailableCoupons();
       availableCoupons.assignAll(coupons);
     } catch (e) {
-      // ignore
+      Fluttertoast.showToast(msg: "Unable to load available coupons right now.");
     }
   }
 
@@ -139,41 +141,61 @@ class CartController extends GetxController {
   }
 
   Future<void> addItem(int productId) async {
-    await _repo.addToCart(productId, 1);
-    await loadCart();
+    try {
+      await _repo.addToCart(productId, 1);
+      await loadCart();
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Couldn't add item to cart. Please try again.");
+    }
   }
 
   Future<void> addToCart(ProductModel product, {int qty = 1}) async {
     final pid = int.tryParse(product.id) ?? 0;
     if (pid > 0) {
-      await _repo.addToCart(pid, qty);
-      await loadCart();
+      try {
+        await _repo.addToCart(pid, qty);
+        await loadCart();
+      } catch (e) {
+        Fluttertoast.showToast(msg: "Couldn't add item to cart. Please try again.");
+      }
     }
   }
 
   Future<void> increaseQty(CartItemModel item) async {
-    await _repo.updateCart(
-      int.parse(item.productId),
-      item.quantity.toInt() + 1,
-    );
-    await loadCart();
+    try {
+      await _repo.updateCart(
+        int.parse(item.productId),
+        item.quantity.toInt() + 1,
+      );
+      await loadCart();
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Couldn't update quantity. Please try again.");
+    }
   }
 
   Future<void> decreaseQty(CartItemModel item) async {
     if (item.quantity <= 1) {
       await removeItem(item);
     } else {
-      await _repo.updateCart(
-        int.parse(item.productId),
-        item.quantity.toInt() - 1,
-      );
-      await loadCart();
+      try {
+        await _repo.updateCart(
+          int.parse(item.productId),
+          item.quantity.toInt() - 1,
+        );
+        await loadCart();
+      } catch (e) {
+        Fluttertoast.showToast(msg: "Couldn't update quantity. Please try again.");
+      }
     }
   }
 
   Future<void> removeItem(CartItemModel item) async {
-    await _repo.removeFromCart(int.parse(item.productId));
-    await loadCart();
+    try {
+      await _repo.removeFromCart(int.parse(item.productId));
+      await loadCart();
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Couldn't remove item. Please try again.");
+    }
   }
 
   int get totalItems => items.length;

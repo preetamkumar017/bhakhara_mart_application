@@ -29,6 +29,7 @@ class HomeView extends StatelessWidget {
               /// Profile Icon - Navigate to Profile Screen
               IconButton(
                 icon: const Icon(Icons.person_outline),
+                tooltip: 'Profile',
                 onPressed: () => Get.toNamed('/profile'),
               ),
             ],
@@ -127,51 +128,63 @@ class HomeView extends StatelessWidget {
           final products = controller.productsMap[tab.id] ?? [];
 
           if (products.isEmpty) {
-            return const Center(child: Text("No products found"));
+            return RefreshIndicator(
+              onRefresh: () => controller.loadProducts(tab.id),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 120),
+                  Center(child: Text("No products found")),
+                ],
+              ),
+            );
           }
 
           final isLoadingMore = controller.isLoadingMoreMap[tab.id] ?? false;
 
-          return NotificationListener<ScrollNotification>(
-            onNotification: (ScrollNotification scrollInfo) {
-              if (scrollInfo.metrics.pixels >=
-                  scrollInfo.metrics.maxScrollExtent - 200) {
-                controller.loadMoreProducts(tab.id);
-              }
-              return false;
-            },
-            child: CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.all(12),
-                  sliver: SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.65,
-                    ),
-                    delegate: SliverChildBuilderDelegate(
-                      (_, index) => ProductCard(product: products[index]),
-                      childCount: products.length,
-                    ),
-                  ),
-                ),
-                if (isLoadingMore)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(
-                        child: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2.5),
-                        ),
+          return RefreshIndicator(
+            onRefresh: () => controller.loadProducts(tab.id),
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (scrollInfo.metrics.pixels >=
+                    scrollInfo.metrics.maxScrollExtent - 200) {
+                  controller.loadMoreProducts(tab.id);
+                }
+                return false;
+              },
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.all(12),
+                    sliver: SliverGrid(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.65,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (_, index) => ProductCard(product: products[index]),
+                        childCount: products.length,
                       ),
                     ),
                   ),
-              ],
+                  if (isLoadingMore)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           );
         });
