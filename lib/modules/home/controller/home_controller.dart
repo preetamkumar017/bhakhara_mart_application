@@ -27,6 +27,11 @@ class HomeController extends GetxController {
   /// Cache products per category
   final productsMap = <String, List<ProductModel>>{}.obs;
 
+  /// Per-category pagination state
+  final pageMap = <String, int>{}.obs;
+  final hasMoreMap = <String, bool>{}.obs;
+  final isLoadingMoreMap = <String, bool>{}.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -65,14 +70,46 @@ class HomeController extends GetxController {
   Future<void> loadProducts(String categoryId) async {
     try {
       isProductLoading.value = true;
+      pageMap[categoryId] = 1;
+      hasMoreMap[categoryId] = true;
+      isLoadingMoreMap[categoryId] = false;
 
       final data = categoryId == 'all'
-          ? await _productRepo.getAllProducts()
-          : await _productRepo.getProducts(categoryId);
+          ? await _productRepo.getAllProducts(page: 1, limit: 20)
+          : await _productRepo.getProducts(categoryId, page: 1, limit: 20);
 
       productsMap[categoryId] = data;
+      hasMoreMap[categoryId] = data.length >= 20;
+    } catch (e) {
+      // keep previous or empty list on failure
     } finally {
       isProductLoading.value = false;
+    }
+  }
+
+  Future<void> loadMoreProducts(String categoryId) async {
+    if (isLoadingMoreMap[categoryId] == true ||
+        hasMoreMap[categoryId] == false ||
+        isProductLoading.value) {
+      return;
+    }
+
+    try {
+      isLoadingMoreMap[categoryId] = true;
+      final nextPage = (pageMap[categoryId] ?? 1) + 1;
+
+      final data = categoryId == 'all'
+          ? await _productRepo.getAllProducts(page: nextPage, limit: 20)
+          : await _productRepo.getProducts(categoryId, page: nextPage, limit: 20);
+
+      final current = productsMap[categoryId] ?? [];
+      productsMap[categoryId] = [...current, ...data];
+      pageMap[categoryId] = nextPage;
+      hasMoreMap[categoryId] = data.length >= 20;
+    } catch (e) {
+      // ignore on pagination error to allow retry on next scroll
+    } finally {
+      isLoadingMoreMap[categoryId] = false;
     }
   }
 

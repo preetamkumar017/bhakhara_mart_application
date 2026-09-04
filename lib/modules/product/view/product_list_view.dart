@@ -188,19 +188,52 @@ class ProductListView extends StatelessWidget {
                 );
               }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.68,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                itemCount: controller.products.length,
-                itemBuilder: (_, index) {
-                  final ProductModel product = controller.products[index];
-                  return ProductCard(product: product);
+              return NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification scrollInfo) {
+                  if (scrollInfo.metrics.pixels >=
+                      scrollInfo.metrics.maxScrollExtent - 200) {
+                    controller.loadMoreProducts();
+                  }
+                  return false;
                 },
+                child: CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.all(16),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.68,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (_, index) {
+                            final ProductModel product =
+                                controller.products[index];
+                            return ProductCard(product: product);
+                          },
+                          childCount: controller.products.length,
+                        ),
+                      ),
+                    ),
+                    if (controller.isLoadingMore.value)
+                      const SliverToBoxAdapter(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               );
             }),
           ),
